@@ -1,4 +1,4 @@
-# ITFlow MSP — Android App
+# Riveit — Android App
 
 [![Latest release](https://img.shields.io/github/v/release/TheTractorHacker/itflow-msp-app?include_prereleases&label=release)](https://github.com/TheTractorHacker/itflow-msp-app/releases/latest)
 [![Build APK](https://github.com/TheTractorHacker/itflow-msp-app/actions/workflows/build.yml/badge.svg)](https://github.com/TheTractorHacker/itflow-msp-app/actions/workflows/build.yml)
