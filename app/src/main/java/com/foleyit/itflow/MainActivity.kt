@@ -31,7 +31,7 @@ import com.foleyit.itflow.ui.navigation.Screen
 import com.foleyit.itflow.ui.screens.auth.LoginScreen
 import com.foleyit.itflow.ui.screens.auth.ServerSetupScreen
 import com.foleyit.itflow.ui.screens.main.MainScreen
-import com.foleyit.itflow.ui.theme.ITFlowTheme
+import com.foleyit.itflow.ui.theme.RivetITTheme
 import com.foleyit.itflow.ui.util.BiometricCrypto
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
@@ -71,14 +71,14 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        if (isRooted() && BuildConfig.DEBUG) android.util.Log.w("ITFlow", "Device appears rooted.")
+        if (isRooted() && BuildConfig.DEBUG) android.util.Log.w("RivetIT", "Device appears rooted.")
         window.setFlags(
             android.view.WindowManager.LayoutParams.FLAG_SECURE,
             android.view.WindowManager.LayoutParams.FLAG_SECURE
         )
         enableEdgeToEdge()
 
-        val prefs = (application as ITFlowApplication).prefs
+        val prefs = (application as RivetITApplication).prefs
 
         var startDestination by mutableStateOf<String?>(null)
         splashScreen.setKeepOnScreenCondition { startDestination == null }
@@ -98,7 +98,7 @@ class MainActivity : FragmentActivity() {
             val resolvedStart = startDestination ?: return@setContent
             val themeMode by prefs.themeMode.collectAsState(initial = com.foleyit.itflow.ui.theme.ThemeMode.SYSTEM)
             val colorSeed by prefs.colorSeed.collectAsState(initial = com.foleyit.itflow.ui.theme.ColorSeed.DEFAULT.id)
-            ITFlowTheme(themeMode = themeMode, colorSeed = colorSeed) {
+            RivetITTheme(themeMode = themeMode, colorSeed = colorSeed) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
                     var isLocked by remember { mutableStateOf(false) }
@@ -221,7 +221,7 @@ private fun BiometricLockScreen(prefs: AppPreferences, onUnlocked: () -> Unit, o
         })
         prompt.authenticate(
             BiometricPrompt.PromptInfo.Builder()
-                .setTitle("ITFlow MSP")
+                .setTitle("RivetIT")
                 .setSubtitle("Authenticate to continue")
                 .setAllowedAuthenticators(androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG)
                 .setNegativeButtonText("Sign out")
@@ -237,7 +237,7 @@ private fun BiometricLockScreen(prefs: AppPreferences, onUnlocked: () -> Unit, o
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Icon(Icons.Outlined.Fingerprint, null, Modifier.size(72.dp),
                 tint = MaterialTheme.colorScheme.primary)
-            Text("ITFlow MSP", style = MaterialTheme.typography.headlineSmall,
+            Text("RivetIT", style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold)
             Text("Authentication required", color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(8.dp))

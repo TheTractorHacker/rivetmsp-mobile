@@ -12,19 +12,19 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
-        android:name=".ITFlowApplication"
+        android:name=".RivetITApplication"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ITFlowMSP"
+        android:theme="@style/Theme.RivetIT"
         android:usesCleartextTraffic="false">
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.ITFlowMSP.Splash"
+            android:theme="@style/Theme.RivetIT.Splash"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -46,7 +46,7 @@
 
         <!-- Firebase Cloud Messaging -->
         <service
-            android:name=".push.ITFlowFirebaseMessagingService"
+            android:name=".push.RivetITFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

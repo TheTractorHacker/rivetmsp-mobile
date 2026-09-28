@@ -79,7 +79,7 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: itflow-beta-${{ github.sha }}
+          name: rivetit-beta-${{ github.sha }}
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 30
 

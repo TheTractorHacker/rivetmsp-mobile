@@ -206,6 +206,10 @@ fun AppDrawerContent(
             HorizontalDivider(Modifier.padding(vertical = 8.dp, horizontal = 12.dp))
 
             NavigationDrawerItem(
+                label = { Text("Projects") }, icon = { DrawerLeadingIcon(Icons.Outlined.AccountTree) },
+                selected = false, onClick = { onNavigate(Screen.Projects.route) }, modifier = DrawerItemPadding,
+            )
+            NavigationDrawerItem(
                 label = { Text("Reports") }, icon = { DrawerLeadingIcon(Icons.Outlined.Assessment) },
                 selected = false, onClick = { onNavigate(Screen.ReportsHub.route) }, modifier = DrawerItemPadding,
             )
@@ -216,6 +220,10 @@ fun AppDrawerContent(
             NavigationDrawerItem(
                 label = { Text("Credentials") }, icon = { DrawerLeadingIcon(Icons.Outlined.Lock) },
                 selected = false, onClick = { onNavigate(Screen.Credentials.route) }, modifier = DrawerItemPadding,
+            )
+            NavigationDrawerItem(
+                label = { Text("Contracts") }, icon = { DrawerLeadingIcon(Icons.Outlined.Description) },
+                selected = false, onClick = { onNavigate(Screen.Contracts.route) }, modifier = DrawerItemPadding,
             )
             NavigationDrawerItem(
                 label = { Text("Quotes") }, icon = { DrawerLeadingIcon(Icons.Outlined.RequestQuote) },

@@ -248,7 +248,7 @@ private val VioletDark = darkColorScheme(
 // 16 cards/stat tiles, 28 search fields) maps 1:1 onto M3's five named shape levels. The
 // "full/999" radius (buttons, avatars, nav pills, FAB) has no slot in Shapes — use CircleShape
 // or RoundedCornerShape(percent = 50) directly at the call site, same as full-bleed radii today.
-val ITFlowShapes = Shapes(
+val RivetITShapes = Shapes(
     extraSmall = RoundedCornerShape(4.dp),
     small = RoundedCornerShape(8.dp),
     medium = RoundedCornerShape(12.dp),
@@ -265,7 +265,7 @@ fun colorSchemeFor(seed: ColorSeed, darkTheme: Boolean): ColorScheme = when (see
 }
 
 @Composable
-fun ITFlowTheme(
+fun RivetITTheme(
     themeMode: String = ThemeMode.SYSTEM,
     colorSeed: String = ColorSeed.DEFAULT.id,
     content: @Composable () -> Unit,
@@ -279,6 +279,6 @@ fun ITFlowTheme(
     val statusColors = statusColorsFor(colorScheme, darkTheme)
 
     CompositionLocalProvider(LocalStatusColors provides statusColors) {
-        MaterialTheme(colorScheme = colorScheme, shapes = ITFlowShapes, content = content)
+        MaterialTheme(colorScheme = colorScheme, shapes = RivetITShapes, content = content)
     }
 }

@@ -131,6 +131,119 @@ data class AssetDetail(
     val notes: String?
 )
 
+// ── Projects ─────────────────────────────────────────────────────────────────
+data class ProjectsResponse(override val data: List<ProjectSummary>, override val total: Int) : PagedResponse<ProjectSummary>
+
+data class ProjectSummary(
+    val id: Int, val prefix: String?, val number: Int, val name: String,
+    @SerializedName("due_at") val dueAt: String?,
+    @SerializedName("created_at") val createdAt: String?,
+    @SerializedName("completed_at") val completedAt: String?,
+    @SerializedName("archived_at") val archivedAt: String?,
+    val client: String?, val manager: String?,
+    @SerializedName("ticket_count") val ticketCount: Int,
+    @SerializedName("ticket_closed_count") val ticketClosedCount: Int,
+    @SerializedName("task_count") val taskCount: Int,
+    @SerializedName("task_completed_count") val taskCompletedCount: Int
+)
+
+data class ProjectMilestone(
+    val id: Int, val name: String, val description: String?,
+    @SerializedName("due_at") val dueAt: String?, val order: Int, val status: String?,
+    @SerializedName("completed_at") val completedAt: String?
+)
+
+data class ProjectTask(
+    val id: Int, val name: String, val status: String?, val progress: Int,
+    @SerializedName("due_at") val dueAt: String?,
+    @SerializedName("start_at") val startAt: String?,
+    @SerializedName("milestone_id") val milestoneId: Int?,
+    @SerializedName("completed_at") val completedAt: String?,
+    @SerializedName("assigned_to") val assignedTo: String?,
+    @SerializedName("ticket_number") val ticketNumber: String?
+)
+
+data class ProjectTicket(
+    val id: Int, val number: String, val subject: String,
+    val status: String?, @SerializedName("status_color") val statusColor: String?,
+    @SerializedName("due_at") val dueAt: String?,
+    @SerializedName("closed_at") val closedAt: String?,
+    @SerializedName("assigned_to") val assignedTo: String?
+)
+
+data class ProjectDetail(
+    val id: Int, val prefix: String?, val number: Int, val name: String, val description: String?,
+    @SerializedName("due_at") val dueAt: String?,
+    @SerializedName("start_at") val startAt: String?,
+    @SerializedName("created_at") val createdAt: String?,
+    @SerializedName("updated_at") val updatedAt: String?,
+    @SerializedName("completed_at") val completedAt: String?,
+    @SerializedName("archived_at") val archivedAt: String?,
+    val client: String?, val manager: String?,
+    @SerializedName("estimated_hours") val estimatedHours: Double?,
+    @SerializedName("budget_amount") val budgetAmount: Double?,
+    @SerializedName("hourly_rate") val hourlyRate: Double?,
+    val milestones: List<ProjectMilestone>,
+    val tasks: List<ProjectTask>,
+    val tickets: List<ProjectTicket>
+)
+
+// ── Contracts ────────────────────────────────────────────────────────────────
+data class ContractsResponse(override val data: List<ContractSummary>, override val total: Int) : PagedResponse<ContractSummary>
+
+data class ContractSummary(
+    val id: Int, val name: String, val type: String?, val status: String?, val client: String?,
+    val value: Double?,
+    @SerializedName("renewal_frequency") val renewalFrequency: String?,
+    @SerializedName("start_date") val startDate: String?,
+    @SerializedName("end_date") val endDate: String?,
+    @SerializedName("renewal_date") val renewalDate: String?,
+    @SerializedName("is_expired") val isExpired: Boolean,
+    @SerializedName("is_due_soon") val isDueSoon: Boolean,
+    @SerializedName("has_sla") val hasSla: Boolean,
+    @SerializedName("has_allowance") val hasAllowance: Boolean
+)
+
+data class ContractSlaTier(
+    @SerializedName("response_time") val responseTime: Int?,
+    @SerializedName("resolution_time") val resolutionTime: Int?
+)
+
+data class ContractSla(
+    val high: ContractSlaTier, val medium: ContractSlaTier, val low: ContractSlaTier
+)
+
+data class ContractAllowancePeriod(
+    val included: Double?, val used: Double, val remaining: Double?, val pct: Double?
+)
+
+data class ContractAllowance(
+    val month: Int, val year: Int, val remote: ContractAllowancePeriod, val onsite: ContractAllowancePeriod
+)
+
+data class ContractDocument(
+    val id: Int, val name: String,
+    @SerializedName("mime_type") val mimeType: String?, val size: Int,
+    @SerializedName("uploaded_at") val uploadedAt: String?, val url: String
+)
+
+data class ContractDetail(
+    val id: Int, val name: String, val type: String?, val status: String?, val client: String?,
+    val value: Double?,
+    @SerializedName("renewal_frequency") val renewalFrequency: String?,
+    @SerializedName("start_date") val startDate: String?,
+    @SerializedName("end_date") val endDate: String?,
+    @SerializedName("renewal_date") val renewalDate: String?,
+    @SerializedName("is_expired") val isExpired: Boolean,
+    @SerializedName("is_due_soon") val isDueSoon: Boolean,
+    val details: String?,
+    val sla: ContractSla,
+    val allowance: ContractAllowance,
+    val documents: List<ContractDocument>,
+    @SerializedName("created_at") val createdAt: String?,
+    @SerializedName("updated_at") val updatedAt: String?
+)
+
 // ── Credentials ──────────────────────────────────────────────────────────────
 data class CredentialsResponse(override val data: List<CredentialSummary>, override val total: Int) : PagedResponse<CredentialSummary>
 

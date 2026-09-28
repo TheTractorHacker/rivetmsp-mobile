@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.foleyit.itflow.data.api.ApiClient
+import com.foleyit.itflow.data.api.ServerUrl
 import com.foleyit.itflow.data.local.AppPreferences
 import com.foleyit.itflow.data.ssl.FingerprintTrustManager
 import com.foleyit.itflow.data.ssl.probeCertificate
@@ -51,11 +52,19 @@ fun ServerSetupScreen(prefs: AppPreferences, onDone: () -> Unit) {
     val scope = rememberCoroutineScope()
 
     fun connect(trustedSha: String? = null) {
-        if (!url.startsWith("https://")) { error = "URL must start with https://"; return }
+        /* Server Setup is the only place this URL is authored, so it is where a
+         * hostile-looking one is cheapest to stop. It does not stay inside OkHttp:
+         * it is also the WebView baseUrl on the KB article screen and, since KB
+         * media moved behind a signed endpoint, the origin KbMediaUrl.rewriteContent
+         * writes into the src="..." and href="..." attributes of that document.
+         * That sink escapes it — this check is
+         * the second half of the same defence, not a substitute for it, and it is
+         * the half the user can see and correct. */
+        ServerUrl.rejectionReason(url)?.let { error = it; return }
         loading = true; error = null
         scope.launch {
             try {
-                val cleanUrl = url.trimEnd('/')
+                val cleanUrl = url.trim().trimEnd('/')
                 val tm = FingerprintTrustManager(trustedSha)
                 val ssl = SSLContext.getInstance("TLS").also { it.init(null, arrayOf(tm), null) }
                 val responseCode = withContext(Dispatchers.IO) {
@@ -77,7 +86,7 @@ fun ServerSetupScreen(prefs: AppPreferences, onDone: () -> Unit) {
                 }
             } catch (e: SSLHandshakeException) {
                 // Certificate not trusted by system — probe it and offer to accept
-                val cert = withContext(Dispatchers.IO) { probeCertificate("${url.trimEnd('/')}/api/v1/auth") }
+                val cert = withContext(Dispatchers.IO) { probeCertificate("${url.trim().trimEnd('/')}/api/v1/auth") }
                 if (cert != null) {
                     pendingCert = cert
                 } else {
@@ -196,16 +205,16 @@ fun ServerSetupScreen(prefs: AppPreferences, onDone: () -> Unit) {
             )
         }
         Spacer(Modifier.height(24.dp))
-        Text("Connect to ITFlow", style = MaterialTheme.typography.headlineMedium)
+        Text("Connect to RivetIT", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(8.dp))
-        Text("Enter your ITFlow server address.",
+        Text("Enter your RivetIT server address.",
             color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(40.dp))
 
         OutlinedTextField(
             value = url, onValueChange = { url = it },
             label = { Text("Server URL") },
-            placeholder = { Text("https://itflow.example.com") },
+            placeholder = { Text("https://rivetit.example.com") },
             leadingIcon = { Icon(Icons.Outlined.Link, null) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
@@ -231,7 +240,7 @@ fun ServerSetupScreen(prefs: AppPreferences, onDone: () -> Unit) {
             else Text("Connect")
         }
         Spacer(Modifier.height(32.dp))
-        Text("Not affiliated with ITFlow LLC.",
+        Text("RivetIT — built on ITFlow.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.outline)
         Spacer(Modifier.height(24.dp))
