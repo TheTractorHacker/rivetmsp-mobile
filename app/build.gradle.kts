@@ -38,7 +38,7 @@ android {
             // Beta build — separate app ID so it installs alongside release
             applicationIdSuffix = ".beta"
             versionNameSuffix = "-beta"
-            resValue("string", "app_name", "ITFlow Beta")
+            resValue("string", "app_name", "RivetIT Beta")
             signingConfig = signingConfigs.getByName("debug")
         }
         release {

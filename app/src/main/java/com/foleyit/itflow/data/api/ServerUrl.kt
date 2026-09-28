@@ -36,7 +36,7 @@ object ServerUrl {
         if (!url.startsWith("https://")) return "URL must start with https://"
 
         val afterScheme = url.substring("https://".length).trimEnd('/')
-        if (afterScheme.isEmpty()) return "URL needs a host, e.g. https://itflow.example.com"
+        if (afterScheme.isEmpty()) return "URL needs a host, e.g. https://rivetit.example.com"
 
         if (url.any { it.isWhitespace() || it.isISOControl() }) {
             return "URL must not contain spaces"

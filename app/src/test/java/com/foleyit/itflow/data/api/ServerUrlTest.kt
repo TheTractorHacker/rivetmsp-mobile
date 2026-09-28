@@ -33,11 +33,11 @@ class ServerUrlTest {
     @Test
     fun `a scheme with no host is rejected`() {
         assertEquals(
-            "URL needs a host, e.g. https://itflow.example.com",
+            "URL needs a host, e.g. https://rivetit.example.com",
             ServerUrl.rejectionReason("https://")
         )
         assertEquals(
-            "URL needs a host, e.g. https://itflow.example.com",
+            "URL needs a host, e.g. https://rivetit.example.com",
             ServerUrl.rejectionReason("https:///")
         )
     }

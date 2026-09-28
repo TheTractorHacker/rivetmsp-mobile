@@ -52,7 +52,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// Routes that show the main ITFlow MSP AppBar
+// Routes that show the main RivetIT AppBar
 private val ROOT_ROUTES = setOf(
     Screen.Dashboard.route, Screen.Tickets.route, Screen.Clients.route,
     Screen.Assets.route, Screen.Projects.route, Screen.Contracts.route, Screen.Appointments.route,
@@ -166,7 +166,7 @@ fun MainScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             BrandMark(size = 28.dp)
                             Spacer(Modifier.width(10.dp))
-                            Text("ITFlow MSP", style = MaterialTheme.typography.titleLarge)
+                            Text("RivetIT", style = MaterialTheme.typography.titleLarge)
                         }
                     },
                     actions = {

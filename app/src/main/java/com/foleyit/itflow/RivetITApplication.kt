@@ -8,9 +8,9 @@ import com.foleyit.itflow.push.NotificationHelper
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
-class ITFlowApplication : Application() {
+class RivetITApplication : Application() {
 
-    // Single shared instance — use (application as ITFlowApplication).prefs everywhere
+    // Single shared instance — use (application as RivetITApplication).prefs everywhere
     lateinit var prefs: AppPreferences
 
     override fun onCreate() {
@@ -25,7 +25,7 @@ class ITFlowApplication : Application() {
             val token   = prefs.authToken.first()
             val certSha = prefs.trustedCertSha.first()
             if (url.isNotBlank()) {
-                ApiClient.init(url, token, certSha, context = this@ITFlowApplication)
+                ApiClient.init(url, token, certSha, context = this@RivetITApplication)
             }
         }
         // Best-effort report of a crash saved by CrashReporter.install() on the

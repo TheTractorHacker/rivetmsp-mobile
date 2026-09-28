@@ -205,16 +205,16 @@ fun ServerSetupScreen(prefs: AppPreferences, onDone: () -> Unit) {
             )
         }
         Spacer(Modifier.height(24.dp))
-        Text("Connect to ITFlow", style = MaterialTheme.typography.headlineMedium)
+        Text("Connect to RivetIT", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(8.dp))
-        Text("Enter your ITFlow server address.",
+        Text("Enter your RivetIT server address.",
             color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(40.dp))
 
         OutlinedTextField(
             value = url, onValueChange = { url = it },
             label = { Text("Server URL") },
-            placeholder = { Text("https://itflow.example.com") },
+            placeholder = { Text("https://rivetit.example.com") },
             leadingIcon = { Icon(Icons.Outlined.Link, null) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
@@ -240,7 +240,7 @@ fun ServerSetupScreen(prefs: AppPreferences, onDone: () -> Unit) {
             else Text("Connect")
         }
         Spacer(Modifier.height(32.dp))
-        Text("Not affiliated with ITFlow LLC.",
+        Text("RivetIT — built on ITFlow.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.outline)
         Spacer(Modifier.height(24.dp))
