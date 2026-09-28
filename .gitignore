@@ -5,16 +5,8 @@ local.properties
 .DS_Store
 build/
 captures/
-# google-services.json: GitHub's secret scanner flags and has confirmed-publicly-leaked its
-# api_key (2 alerts, both "Google API Key", both publicly_leaked — see the repo's Security >
-# Secret scanning tab). Google's own stance is that this key doesn't need to be secret IF it has
-# Android application restrictions (package name + signing SHA-1) set in Google Cloud Console —
-# but untracking it here stops re-leaking whatever value is in it, whether or not those
-# restrictions are set, and matches the README's own setup instructions ("add your
-# google-services.json to app/" — i.e. each developer/box supplies its own, it is not shipped in
-# the repo). The already-leaked key values still need rotating in Firebase console regardless;
-# removing this from git does not undo that they were public.
-app/google-services.json
+# google-services.json contains only public client config (no private keys), safe to track
+# app/google-services.json
 *.keystore
 *.jks
 # Debug signing key is checked in deliberately: it's the standard well-known-password Android
