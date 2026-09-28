@@ -1,7 +1,7 @@
 # RivetIT Mobile — Android App
 
-[![Latest release](https://img.shields.io/github/v/release/TheTractorHacker/itflow-msp-app?include_prereleases&label=release)](https://github.com/TheTractorHacker/itflow-msp-app/releases/latest)
-[![Build APK](https://github.com/TheTractorHacker/itflow-msp-app/actions/workflows/build.yml/badge.svg)](https://github.com/TheTractorHacker/itflow-msp-app/actions/workflows/build.yml)
+[![Latest release](https://img.shields.io/github/v/release/TheTractorHacker/rivetit-mobile?include_prereleases&label=release)](https://github.com/TheTractorHacker/rivetit-mobile/releases/latest)
+[![Build APK](https://github.com/TheTractorHacker/rivetit-mobile/actions/workflows/build.yml/badge.svg)](https://github.com/TheTractorHacker/rivetit-mobile/actions/workflows/build.yml)
 ![Platform](https://img.shields.io/badge/platform-Android-3ddc84)
 
 > **By [TractorHacker](https://github.com/TheTractorHacker)** — the native Android companion for
