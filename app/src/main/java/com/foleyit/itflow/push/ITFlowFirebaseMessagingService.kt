@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 class ITFlowFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
-        val title  = message.notification?.title ?: message.data["title"] ?: "ITFlow"
+        val title  = message.notification?.title ?: message.data["title"] ?: "RivetMSP"
         val body   = message.notification?.body  ?: message.data["body"]  ?: return
         val action = message.data["action"]?.takeIf { DeepLinks.ALLOWED_ROUTE.matches(it) }
         NotificationHelper.createChannel(this)

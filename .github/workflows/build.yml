@@ -79,7 +79,7 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: itflow-beta-${{ github.sha }}
+          name: rivetmsp-beta-${{ github.sha }}
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 30
 
@@ -88,12 +88,13 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: app/build/outputs/apk/debug/*.apk
-          generate_release_notes: true
+          generate_release_notes: false
+          prerelease: ${{ contains(github.ref_name, '-beta') }}
 
   build-release:
     name: Release APK (signed)
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-beta')
     needs: build-debug
 
     steps:

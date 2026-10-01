@@ -71,7 +71,7 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        if (isRooted() && BuildConfig.DEBUG) android.util.Log.w("ITFlow", "Device appears rooted.")
+        if (isRooted() && BuildConfig.DEBUG) android.util.Log.w("RivetMSP", "Device appears rooted.")
         window.setFlags(
             android.view.WindowManager.LayoutParams.FLAG_SECURE,
             android.view.WindowManager.LayoutParams.FLAG_SECURE
@@ -98,6 +98,7 @@ class MainActivity : FragmentActivity() {
             val resolvedStart = startDestination ?: return@setContent
             val themeMode by prefs.themeMode.collectAsState(initial = com.foleyit.itflow.ui.theme.ThemeMode.SYSTEM)
             val colorSeed by prefs.colorSeed.collectAsState(initial = com.foleyit.itflow.ui.theme.ColorSeed.DEFAULT.id)
+            com.foleyit.itflow.ui.branding.CompanyBrandingProvider(prefs) {
             ITFlowTheme(themeMode = themeMode, colorSeed = colorSeed) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
@@ -200,6 +201,7 @@ class MainActivity : FragmentActivity() {
                     }
                 }
             }
+            }
         }
     }
 }
@@ -207,6 +209,8 @@ class MainActivity : FragmentActivity() {
 @Composable
 private fun BiometricLockScreen(prefs: AppPreferences, onUnlocked: () -> Unit, onSignOut: () -> Unit) {
     val activity = androidx.activity.compose.LocalActivity.current as? FragmentActivity ?: return
+
+    val companyName = com.foleyit.itflow.ui.branding.LocalCompanyBranding.current.name
 
     fun authenticate() {
         val crypto = try { BiometricCrypto.cryptoObject() } catch (_: Exception) { return }
@@ -221,7 +225,7 @@ private fun BiometricLockScreen(prefs: AppPreferences, onUnlocked: () -> Unit, o
         })
         prompt.authenticate(
             BiometricPrompt.PromptInfo.Builder()
-                .setTitle("ITFlow MSP")
+                .setTitle(companyName)
                 .setSubtitle("Authenticate to continue")
                 .setAllowedAuthenticators(androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG)
                 .setNegativeButtonText("Sign out")
@@ -237,7 +241,8 @@ private fun BiometricLockScreen(prefs: AppPreferences, onUnlocked: () -> Unit, o
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Icon(Icons.Outlined.Fingerprint, null, Modifier.size(72.dp),
                 tint = MaterialTheme.colorScheme.primary)
-            Text("ITFlow MSP", style = MaterialTheme.typography.headlineSmall,
+            com.foleyit.itflow.ui.branding.CompanyLogo(Modifier.width(220.dp).height(76.dp))
+            Text(companyName, style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold)
             Text("Authentication required", color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(8.dp))

@@ -13,8 +13,8 @@ android {
         applicationId = "com.foleyit.itflow"
         minSdk = 34
         targetSdk = 36
-        versionCode = 39
-        versionName = "1.30.1"
+        versionCode = 40
+        versionName = "1.31.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -38,7 +38,7 @@ android {
             // Beta build — separate app ID so it installs alongside release
             applicationIdSuffix = ".beta"
             versionNameSuffix = "-beta"
-            resValue("string", "app_name", "ITFlow Beta")
+            resValue("string", "app_name", "RivetMSP Beta")
             signingConfig = signingConfigs.getByName("debug")
         }
         release {

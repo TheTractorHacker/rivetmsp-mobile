@@ -78,7 +78,7 @@ private fun SettingsRow(
 
 /** Small display name for a color seed — the enum id ("foleyit") isn't presentation-ready. */
 private fun ColorSeed.displayName(): String = when (this) {
-    ColorSeed.FOLEYIT -> "FoleyIT"
+    ColorSeed.FOLEYIT -> "Rivet Blue"
     ColorSeed.TEAL -> "Teal"
     ColorSeed.SUNSET -> "Sunset"
     ColorSeed.FOREST -> "Forest"
@@ -591,7 +591,7 @@ fun ProfileScreen(
                 Spacer(Modifier.height(8.dp))
 
                 Text(
-                    "ITFlow MSP ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                    "RivetMSP ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.outline,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),

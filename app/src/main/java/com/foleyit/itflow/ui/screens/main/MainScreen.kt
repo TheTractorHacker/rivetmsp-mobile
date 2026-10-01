@@ -166,7 +166,7 @@ fun MainScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             BrandMark(size = 28.dp)
                             Spacer(Modifier.width(10.dp))
-                            Text("ITFlow MSP", style = MaterialTheme.typography.titleLarge)
+                            Text(com.foleyit.itflow.ui.branding.LocalCompanyBranding.current.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                         }
                     },
                     actions = {

@@ -33,7 +33,6 @@ import com.foleyit.itflow.data.api.FcmTokenRequest
 import com.foleyit.itflow.data.api.LoginRequest
 import com.foleyit.itflow.data.api.PasskeyCompleteRequest
 import com.foleyit.itflow.data.local.AppPreferences
-import com.foleyit.itflow.ui.components.FoleyItLogoMark
 import com.foleyit.itflow.ui.util.userMessage
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
@@ -86,7 +85,7 @@ fun LoginScreen(prefs: AppPreferences, onLoggedIn: () -> Unit, onChangeServer: (
                 val resp = withContext(Dispatchers.IO) {
                     ApiClient.service().login(LoginRequest(
                         username = username.trim(), password = password,
-                        device_name = "ITFlow MSP Android",
+                        device_name = "RivetMSP Android",
                         totp_code = if (totpCode.isNotBlank()) totpCode.trim() else null
                     ))
                 }
@@ -162,22 +161,7 @@ fun LoginScreen(prefs: AppPreferences, onLoggedIn: () -> Unit, onChangeServer: (
     ) {
         Spacer(Modifier.height(64.dp))
 
-        val logoGradient = Brush.linearGradient(
-            listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.inversePrimary),
-            start = Offset.Zero,
-            end = Offset.Infinite
-        )
-        Box(
-            modifier = Modifier
-                .size(72.dp)
-                .background(logoGradient, MaterialTheme.shapes.extraLarge),
-            contentAlignment = Alignment.Center
-        ) {
-            FoleyItLogoMark(
-                modifier = Modifier.size(40.dp),
-                markColor = MaterialTheme.colorScheme.onPrimary,
-            )
-        }
+        com.foleyit.itflow.ui.branding.CompanyLogo(Modifier.width(220.dp).height(76.dp))
         Spacer(Modifier.height(24.dp))
         Text("Sign in", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(4.dp))

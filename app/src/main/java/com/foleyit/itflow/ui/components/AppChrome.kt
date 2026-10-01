@@ -31,85 +31,12 @@ import androidx.compose.ui.unit.dp
 import com.foleyit.itflow.ui.navigation.BottomNavItem
 import com.foleyit.itflow.ui.navigation.Screen
 
-/**
- * The new brand mark — a bold white "F" monogram built from 3 rounded rects, plus a small
- * secondary-color accent dot, replacing the old sync_alt Material icon everywhere it appeared
- * (top bar, auth screens, launcher icon). Drawn directly on a Canvas (not a static ImageVector)
- * so the accent dot can use the live theme's `secondary` role — it needs to track whichever
- * color seed is active, which a fixed-color vector asset couldn't do.
- */
-@Composable
-fun FoleyItLogoMark(
-    modifier: Modifier = Modifier,
-    markColor: Color = Color.White,
-    accentColor: Color = MaterialTheme.colorScheme.secondary,
-) {
-    Canvas(modifier = modifier) {
-        val s = size.minDimension / 24f
-        fun px(v: Float) = v * s
-        val strokeRadius = CornerRadius(px(1.5f), px(1.5f))
-        // Vertical stroke of the F
-        drawRoundRect(
-            color = markColor,
-            topLeft = Offset(px(6.5f), px(5f)),
-            size = Size(px(3f), px(14f)),
-            cornerRadius = strokeRadius,
-        )
-        // Top horizontal stroke
-        drawRoundRect(
-            color = markColor,
-            topLeft = Offset(px(6.5f), px(5f)),
-            size = Size(px(10.5f), px(3f)),
-            cornerRadius = strokeRadius,
-        )
-        // Middle horizontal stroke
-        drawRoundRect(
-            color = markColor,
-            topLeft = Offset(px(6.5f), px(10.5f)),
-            size = Size(px(8f), px(3f)),
-            cornerRadius = strokeRadius,
-        )
-        // Accent dot
-        drawCircle(color = accentColor, radius = px(2.8f), center = Offset(px(18.5f), px(18.5f)))
-    }
-}
-
-/**
- * The brand's asymmetric "squircle" corner treatment (`30% 30% 30% 10%`) — the signature shape
- * used on the logo tile everywhere it appears (top bar, auth screens, drawer header).
- */
-val BrandTileShape: RoundedCornerShape = RoundedCornerShape(
-    topStartPercent = 30, topEndPercent = 30, bottomEndPercent = 30, bottomStartPercent = 10,
-)
-
-/** Gradient brand tile (primary -> inversePrimary, 135deg) containing the [FoleyItLogoMark]. */
+/** Company artwork takes precedence; product artwork is only the unconfigured fallback. */
 @Composable
 fun BrandMark(size: Dp, modifier: Modifier = Modifier) {
-    Box(
-        modifier
-            .size(size)
-            .clip(BrandTileShape)
-            .background(
-                Brush.linearGradient(
-                    listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.inversePrimary),
-                    start = Offset.Zero,
-                    end = Offset.Infinite,
-                )
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        // onPrimary, not a hardcoded white — this gradient is anchored in `primary`, and
-        // onPrimary is the role already tuned to contrast against it in both light and dark mode
-        // across all 5 seeds (dark-mode primaries in this app are deliberately light/bright, so a
-        // fixed white mark would wash out there for several seeds).
-        FoleyItLogoMark(
-            modifier = Modifier.size(size * 0.62f),
-            markColor = MaterialTheme.colorScheme.onPrimary,
-        )
-    }
+    com.foleyit.itflow.ui.branding.CompanyLogo(modifier.width(size * 2.6f).height(size))
 }
 
-/** Small red 8dp dot, top-right of an icon — the unread-notifications indicator. */
 @Composable
 fun UnreadDot(modifier: Modifier = Modifier) {
     Box(
