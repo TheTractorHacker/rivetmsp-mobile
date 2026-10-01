@@ -1,10 +1,10 @@
-# RivetMSP — Android App
+# RivetMSP
 
-[![Latest release](https://img.shields.io/github/v/release/TheTractorHacker/itflow-msp-app?include_prereleases&label=release)](https://github.com/TheTractorHacker/itflow-msp-app/releases/latest)
-[![Build APK](https://github.com/TheTractorHacker/itflow-msp-app/actions/workflows/build.yml/badge.svg)](https://github.com/TheTractorHacker/itflow-msp-app/actions/workflows/build.yml)
+[![Latest release](https://img.shields.io/github/v/release/TheTractorHacker/rivetmsp-mobile?include_prereleases&label=release)](https://github.com/TheTractorHacker/rivetmsp-mobile/releases/latest)
+[![Build APK](https://github.com/TheTractorHacker/rivetmsp-mobile/actions/workflows/build.yml/badge.svg)](https://github.com/TheTractorHacker/rivetmsp-mobile/actions/workflows/build.yml)
 ![Platform](https://img.shields.io/badge/platform-Android-3ddc84)
 
-> **By [TractorHacker](https://github.com/TheTractorHacker)** — the native Android companion for [RivetMSP Edition](https://github.com/TheTractorHacker/itflow).
+> **By [TractorHacker](https://github.com/TheTractorHacker)** — the native Android companion for [RivetMSP](https://github.com/TheTractorHacker/RivetMSP).
 > This is **not** the official ITFlow app and is not affiliated with or endorsed by ITFlow LLC.
 
 Built with Kotlin + Jetpack Compose + Material 3.
@@ -45,7 +45,7 @@ Built with Kotlin + Jetpack Compose + Material 3.
 
 - Android Studio Hedgehog or newer
 - Android SDK 35
-- **RivetMSP Edition** server running **v2.4.12+** ([TheTractorHacker/itflow](https://github.com/TheTractorHacker/itflow))
+- **RivetMSP** server running **v2.4.12+** ([TheTractorHacker/RivetMSP](https://github.com/TheTractorHacker/RivetMSP))
 - `google-services.json` from your Firebase project for push notifications
 
 ---
@@ -70,5 +70,5 @@ Built with Kotlin + Jetpack Compose + Material 3.
 
 ## Related
 
-- Web app: [TheTractorHacker/itflow](https://github.com/TheTractorHacker/itflow)
+- Web app: [TheTractorHacker/RivetMSP](https://github.com/TheTractorHacker/RivetMSP)
 - Upstream ITFlow: [itflow-org/itflow](https://github.com/itflow-org/itflow)
