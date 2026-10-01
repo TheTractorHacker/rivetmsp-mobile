@@ -90,6 +90,8 @@ jobs:
           files: app/build/outputs/apk/debug/*.apk
           generate_release_notes: false
           prerelease: ${{ contains(github.ref_name, '-beta') }}
+          draft: ${{ !contains(github.ref_name, '-beta') }}
+          name: RivetMSP Android ${{ github.ref_name }}
 
   build-release:
     name: Release APK (signed)
@@ -139,3 +141,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: app/build/outputs/apk/release/*.apk
+          draft: false
+          prerelease: false
+          make_latest: true
+          name: RivetMSP Android ${{ github.ref_name }}
