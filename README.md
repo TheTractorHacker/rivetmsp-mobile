@@ -13,18 +13,18 @@ Built with Kotlin + Jetpack Compose + Material 3.
 
 ## Screenshots
 
+Captured on a Pixel 7 (Android 36) against a demo server with fictional data.
+
 <table>
-<tr>
-<td align="center" width="34%"><b>New Ticket</b></td>
-<td align="center" width="33%"><b>Tickets</b></td>
-<td align="center" width="33%"><b>Live Chat</b></td>
-</tr>
-<tr>
-<td><img src="docs/screenshots/create_ticket.png" width="100%"></td>
-<td><img src="docs/screenshots/tickets.png" width="100%"></td>
-<td><img src="docs/screenshots/ticket_chat.png" width="100%"></td>
-</tr>
+<tr><td align="center" width="25%"><b>Sign in</b></td><td align="center" width="25%"><b>Dashboard</b></td><td align="center" width="25%"><b>Tickets</b></td><td align="center" width="25%"><b>Ticket detail</b></td></tr>
+<tr><td><img src="docs/screenshots/01_login.png" width="100%" alt="Sign in"></td><td><img src="docs/screenshots/02_dashboard.png" width="100%" alt="Dashboard"></td><td><img src="docs/screenshots/03_tickets.png" width="100%" alt="Tickets"></td><td><img src="docs/screenshots/04_ticket_detail.png" width="100%" alt="Ticket detail"></td></tr>
 </table>
+
+<table>
+<tr><td align="center" width="25%"><b>Clients</b></td><td align="center" width="25%"><b>Assets</b></td><td align="center" width="25%"><b>New ticket</b></td></tr>
+<tr><td><img src="docs/screenshots/05_clients.png" width="100%" alt="Clients"></td><td><img src="docs/screenshots/06_assets.png" width="100%" alt="Assets"></td><td><img src="docs/screenshots/07_create_ticket.png" width="100%" alt="New ticket"></td></tr>
+</table>
+
 
 ---
 
