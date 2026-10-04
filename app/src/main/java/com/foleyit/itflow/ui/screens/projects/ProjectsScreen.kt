@@ -74,6 +74,8 @@ fun ProjectsScreen(navController: NavController) {
             val ls = list.state
             when {
                 ls.isRefreshing -> LoadingScreen()
+                (ls.error as? retrofit2.HttpException)?.code() == 404 ->
+                    EmptyScreen("Projects aren't available on this server", Icons.Outlined.AccountTree)
                 ls.error != null -> ErrorScreen(userMessage(ls.error), onRetry = list::retry)
                 ls.items.isEmpty() -> EmptyScreen("No projects found", Icons.Outlined.AccountTree)
                 else -> {

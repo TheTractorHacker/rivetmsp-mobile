@@ -50,11 +50,14 @@ fun ServerSetupScreen(prefs: AppPreferences, onDone: () -> Unit) {
     val scope = rememberCoroutineScope()
 
     fun connect(trustedSha: String? = null) {
-        if (!url.startsWith("https://")) { error = "URL must start with https://"; return }
+        val cleanUrl = normalizeServerUrl(url)
+        url = cleanUrl
+        if (!cleanUrl.startsWith("https://") || cleanUrl.length <= "https://".length) {
+            error = "URL must start with https://"; return
+        }
         loading = true; error = null
         scope.launch {
             try {
-                val cleanUrl = url.trimEnd('/')
                 val tm = FingerprintTrustManager(trustedSha)
                 val ssl = SSLContext.getInstance("TLS").also { it.init(null, arrayOf(tm), null) }
                 val responseCode = withContext(Dispatchers.IO) {
@@ -76,7 +79,7 @@ fun ServerSetupScreen(prefs: AppPreferences, onDone: () -> Unit) {
                 }
             } catch (e: SSLHandshakeException) {
                 // Certificate not trusted by system — probe it and offer to accept
-                val cert = withContext(Dispatchers.IO) { probeCertificate("${url.trimEnd('/')}/api/v1/auth") }
+                val cert = withContext(Dispatchers.IO) { probeCertificate("$cleanUrl/api/v1/auth") }
                 if (cert != null) {
                     pendingCert = cert
                 } else {
@@ -95,7 +98,7 @@ fun ServerSetupScreen(prefs: AppPreferences, onDone: () -> Unit) {
         val fingerprint = cert.sha256Fingerprint()
         val lastSix = remember(fingerprint) { fingerprint.replace(":", "").takeLast(6) }
         var confirmInput by remember(fingerprint) { mutableStateOf("") }
-        val confirmed = confirmInput.trim().equals(lastSix, ignoreCase = true)
+        val confirmed = fingerprintSuffixMatches(confirmInput, fingerprint)
         AlertDialog(
             onDismissRequest = { pendingCert = null },
             icon = { Icon(Icons.Outlined.Warning, null, tint = MaterialTheme.colorScheme.error) },
