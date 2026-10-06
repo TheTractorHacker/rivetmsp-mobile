@@ -61,7 +61,7 @@ fun InvoiceDetailScreen(id: Int, navController: NavController) {
                                 Text("Invoice #${inv.number}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                                 Row {
                                     Surface(color = statusColor.copy(alpha = 0.12f), shape = MaterialTheme.shapes.small) { Text(inv.status ?: "", modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp), color = statusColor, fontWeight = FontWeight.SemiBold) }
-                                    inv.guestUrl?.let { url -> IconButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("${ApiClient.serverUrl}$url"))) }) { Icon(Icons.Outlined.OpenInBrowser, "Open in browser") } }
+                                    inv.guestUrl?.let { url -> IconButton(onClick = { com.foleyit.itflow.ui.util.openWebUrl(context, "${ApiClient.serverUrl}$url") }) { Icon(Icons.Outlined.OpenInBrowser, "Open in browser") } }
                                 }
                             }
                             Text(inv.client ?: "", color = MaterialTheme.colorScheme.primary)

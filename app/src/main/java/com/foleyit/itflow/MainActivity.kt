@@ -81,10 +81,14 @@ class MainActivity : FragmentActivity() {
         val prefs = (application as ITFlowApplication).prefs
 
         var startDestination by mutableStateOf<String?>(null)
+        // Cold start / process death: lock before anything is shown if the lock is enabled
+        // and a session exists. Lock state is not otherwise persisted.
+        var coldStartLocked by mutableStateOf(false)
         splashScreen.setKeepOnScreenCondition { startDestination == null }
         lifecycleScope.launch {
             val url   = prefs.serverUrl.first()
             val token = prefs.authToken.first()
+            coldStartLocked = prefs.biometricLock.first() && url.isNotBlank() && token != null
             startDestination = when {
                 url.isBlank() -> Screen.Setup.route
                 token == null -> Screen.Login.route
@@ -102,7 +106,7 @@ class MainActivity : FragmentActivity() {
             ITFlowTheme(themeMode = themeMode, colorSeed = colorSeed) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
-                    var isLocked by remember { mutableStateOf(false) }
+                    var isLocked by remember { mutableStateOf(coldStartLocked) }
                     val biometricEnabled by prefs.biometricLock.collectAsState(initial = false)
 
                     // Wire 401 auto-logout
@@ -190,8 +194,14 @@ class MainActivity : FragmentActivity() {
                                 onChangeServer = {
                                     lifecycleScope.launch {
                                         runCatching { ApiClient.service().registerFcmToken(com.foleyit.itflow.data.api.FcmTokenRequest("")) }
-                                        prefs.clearAuth()
-                                        ApiClient.clearToken()
+                                        runCatching { ApiClient.service().logout() }
+                                        try {
+                                            prefs.clearAuth()
+                                            prefs.clearTrustedCert()
+                                        } finally {
+                                            ApiClient.clearToken()
+                                            ApiClient.setTrustedCert(null)
+                                        }
                                         navController.navigate(Screen.Setup.route) {
                                             popUpTo(0) { inclusive = true }
                                         }

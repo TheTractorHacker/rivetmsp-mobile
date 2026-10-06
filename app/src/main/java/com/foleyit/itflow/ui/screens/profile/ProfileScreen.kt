@@ -213,12 +213,15 @@ fun ProfileScreen(
                     showSignOutConfirm = false
                     scope.launch {
                         withContext(Dispatchers.IO) {
-                            try { ApiClient.service().registerFcmToken(FcmTokenRequest("")) } catch (_: Exception) {}
-                            try { ApiClient.service().logout() } catch (_: Exception) {}
+                            kotlinx.coroutines.withTimeoutOrNull(8_000L) {
+                                try { ApiClient.service().registerFcmToken(FcmTokenRequest("")) } catch (_: Exception) {}
+                                try { ApiClient.service().logout() } catch (_: Exception) {}
+                            }
                         }
-                        prefs.clearAuth()
-                        ApiClient.clearToken()
-                        onLoggedOut()
+                        try { prefs.clearAuth() } finally {
+                            ApiClient.clearToken()
+                            onLoggedOut()
+                        }
                     }
                 }) { Text("Sign Out", color = MaterialTheme.colorScheme.error) }
             },

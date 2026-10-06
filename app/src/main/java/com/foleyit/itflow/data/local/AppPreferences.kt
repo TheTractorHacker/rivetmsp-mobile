@@ -28,17 +28,35 @@ class AppPreferences(context: Context) {
         val COLOR_SEED        = stringPreferencesKey("color_seed")
     }
 
-    private val masterKey = MasterKey.Builder(ctx)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build()
+    private fun createSecurePrefs(): android.content.SharedPreferences {
+        val masterKey = MasterKey.Builder(ctx)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        return EncryptedSharedPreferences.create(
+            ctx,
+            "itflow_secure",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
 
-    private val securePrefs = EncryptedSharedPreferences.create(
-        ctx,
-        "itflow_secure",
-        masterKey,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
+    // If the keystore key was invalidated (restore, OS update) the encrypted file is
+    // unreadable: reset it and the master key so the user simply signs in again
+    // instead of crash-looping.
+    private val securePrefs: android.content.SharedPreferences? = try {
+        createSecurePrefs()
+    } catch (_: Exception) {
+        try {
+            ctx.deleteSharedPreferences("itflow_secure")
+            val ks = java.security.KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+            runCatching { ks.deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS) }
+            createSecurePrefs()
+        } catch (_: Exception) {
+            // Last resort: no token persistence (user signs in each launch); never plaintext.
+            null
+        }
+    }
 
     val serverUrl: Flow<String>        = ctx.dataStore.data.map { it[SERVER_URL] ?: "" }
     val userName: Flow<String?>        = ctx.dataStore.data.map { it[USER_NAME] }
@@ -52,7 +70,7 @@ class AppPreferences(context: Context) {
     val colorSeed: Flow<String>        = ctx.dataStore.data.map { it[COLOR_SEED] ?: "foleyit" }
 
     val authToken: Flow<String?> = flow {
-        emit(securePrefs.getString("auth_token", null))
+        emit(securePrefs?.getString("auth_token", null))
     }
 
     suspend fun saveServerUrl(url: String) {
@@ -60,7 +78,7 @@ class AppPreferences(context: Context) {
     }
 
     suspend fun saveAuthData(token: String, user: UserInfo) {
-        securePrefs.edit().putString("auth_token", token).apply()
+        securePrefs?.edit()?.putString("auth_token", token)?.apply()
         ctx.dataStore.edit {
             it[USER_NAME]  = user.name
             it[USER_EMAIL] = user.email
@@ -70,7 +88,7 @@ class AppPreferences(context: Context) {
     }
 
     suspend fun clearAuth() {
-        securePrefs.edit().remove("auth_token").apply()
+        securePrefs?.edit()?.remove("auth_token")?.apply()
         ctx.dataStore.edit {
             it.remove(USER_NAME)
             it.remove(USER_EMAIL)

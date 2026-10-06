@@ -70,7 +70,7 @@ fun ServerSetupScreen(prefs: AppPreferences, onDone: () -> Unit) {
                         .execute().code
                 }
                 if (responseCode in 200..499) {
-                    if (trustedSha != null) prefs.saveTrustedCert(trustedSha)
+                    if (trustedSha != null) prefs.saveTrustedCert(trustedSha) else prefs.clearTrustedCert()
                     prefs.saveServerUrl(cleanUrl)
                     ApiClient.init(cleanUrl, null, trustedSha)
                     onDone()

@@ -129,13 +129,18 @@ fun MainScreen(
 
     fun signOut() {
         scope.launch {
+            // Best-effort server revocation, bounded so an unreachable server cannot block sign-out.
             withContext(Dispatchers.IO) {
-                try { ApiClient.service().registerFcmToken(com.foleyit.itflow.data.api.FcmTokenRequest("")) } catch (_: Exception) {}
-                try { ApiClient.service().logout() } catch (_: Exception) {}
+                kotlinx.coroutines.withTimeoutOrNull(8_000L) {
+                    try { ApiClient.service().registerFcmToken(com.foleyit.itflow.data.api.FcmTokenRequest("")) } catch (_: Exception) {}
+                    try { ApiClient.service().logout() } catch (_: Exception) {}
+                }
             }
-            prefs.clearAuth()
-            ApiClient.clearToken()
-            onLoggedOut()
+            // Local state is always cleared, even if the server call failed.
+            try { prefs.clearAuth() } finally {
+                ApiClient.clearToken()
+                onLoggedOut()
+            }
         }
     }
 

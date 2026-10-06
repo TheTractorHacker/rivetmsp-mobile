@@ -21,6 +21,7 @@ object ApiClient {
     private var _trustedCertSha: String? = null
     private var _service: ApiService? = null
     private var _appContext: Context? = null
+    private var _cache: Cache? = null
 
     val serverUrl get() = _serverUrl
 
@@ -34,8 +35,13 @@ object ApiClient {
         _service = buildService()
     }
 
-    fun setToken(token: String) { _token = token; _service = buildService() }
-    fun clearToken() { _token = null; _service = buildService() }
+    fun setToken(token: String) { clearHttpCache(); _token = token; _service = buildService() }
+    fun clearToken() { clearHttpCache(); _token = null; _service = buildService() }
+
+    /** Drop every cached response (called on logout, 401 and token change). */
+    fun clearHttpCache() {
+        try { _cache?.evictAll() } catch (_: Exception) {}
+    }
     fun setTrustedCert(sha: String?) { _trustedCertSha = sha; _service = buildService() }
 
     fun service(): ApiService = _service ?: error("ApiClient not initialized")
@@ -61,8 +67,9 @@ object ApiClient {
             // Offline cache (10 MB)
             .apply {
                 _appContext?.let { ctx ->
-                    val cacheDir = File(ctx.cacheDir, "http_cache")
-                    cache(Cache(cacheDir, 10L * 1024 * 1024))
+                    val c = _cache ?: Cache(File(ctx.cacheDir, "http_cache"), 10L * 1024 * 1024)
+                        .also { _cache = it }
+                    cache(c)
                 }
             }
             // Serve stale cache when offline
@@ -74,12 +81,13 @@ object ApiClient {
                 } else chain.request()
                 chain.proceed(request)
             }
-            // Cache GET responses for 5 minutes on the network side
+            // Only cache GETs for 5 minutes (private) when the server gave no
+            // caching directive; never override no-store/private/other server policy.
             .addNetworkInterceptor { chain ->
                 val response = chain.proceed(chain.request())
-                if (chain.request().method == "GET") {
+                if (chain.request().method == "GET" && response.header("Cache-Control") == null) {
                     response.newBuilder()
-                        .header("Cache-Control", "public, max-age=300")
+                        .header("Cache-Control", "private, max-age=300")
                         .build()
                 } else response
             }
@@ -94,6 +102,7 @@ object ApiClient {
             .addInterceptor { chain ->
                 val response = chain.proceed(chain.request())
                 if (response.code == 401 && _token != null) {
+                    clearHttpCache()
                     android.os.Handler(android.os.Looper.getMainLooper()).post {
                         onUnauthorized?.invoke()
                     }

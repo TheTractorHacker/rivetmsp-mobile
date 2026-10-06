@@ -61,7 +61,7 @@ fun QuoteDetailScreen(id: Int, navController: NavController) {
                                 Text(q.subject ?: "", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                                 q.guestUrl?.let {
                                     val url = "${ApiClient.serverUrl}$it"
-                                    IconButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }) { Icon(Icons.Outlined.OpenInBrowser, "Open in browser") }
+                                    IconButton(onClick = { com.foleyit.itflow.ui.util.openWebUrl(context, url) }) { Icon(Icons.Outlined.OpenInBrowser, "Open in browser") }
                                 }
                             }
                             Text(q.client ?: "", color = MaterialTheme.colorScheme.primary)

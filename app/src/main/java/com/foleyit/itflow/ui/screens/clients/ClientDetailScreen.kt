@@ -96,7 +96,7 @@ fun ClientDetailScreen(id: Int, navController: NavController) {
                                 }
                             }
                             client.website?.let {
-                                OutlinedButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(it))) },
+                                OutlinedButton(onClick = { com.foleyit.itflow.ui.util.openWebUrl(context, it) },
                                     modifier = Modifier.weight(1f)) {
                                     Icon(Icons.Outlined.Language, null, Modifier.size(16.dp)); Spacer(Modifier.width(4.dp)); Text("Website")
                                 }

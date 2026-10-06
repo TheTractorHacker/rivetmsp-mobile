@@ -221,7 +221,7 @@ fun CredentialDetailScreen(id: Int, navController: NavController) {
                                     )
                                 }
                                 c.uri?.takeIf { it.isNotBlank() }?.let { url ->
-                                    CredField("URL", url, Icons.Outlined.Link, onCopy = { copy(url, "URL") }, onTap = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) })
+                                    CredField("URL", url, Icons.Outlined.Link, onCopy = { copy(url, "URL") }, onTap = { com.foleyit.itflow.ui.util.openWebUrl(context, url) })
                                 }
                             }
                         }

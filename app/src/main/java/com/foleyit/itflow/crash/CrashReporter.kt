@@ -24,6 +24,10 @@ import java.util.TimeZone
  * Reachable even when the user isn't logged in / has no valid token, since the crash
  * most worth seeing is often one that happens before login succeeds - see the
  * semi-public POST /api/v1/crash-reports carve-out server-side.
+ *
+ * SECURITY NOTE: the upload is intentionally unauthenticated when no token exists; the
+ * server MUST rate-limit and size-cap this endpoint and treat the body as untrusted text.
+ * A bearer token is attached automatically when the user is signed in.
  */
 object CrashReporter {
     private const val CRASH_FILE = "pending_crash.txt"

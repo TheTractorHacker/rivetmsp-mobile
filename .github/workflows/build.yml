@@ -8,7 +8,7 @@ on:
     branches: [beta]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   test:
@@ -51,6 +51,8 @@ jobs:
     name: Debug (Beta) APK
     runs-on: ubuntu-latest
     needs: test
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -84,13 +86,15 @@ jobs:
           retention-days: 30
 
       - name: Attach to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        # Debug (beta-signed) APK is only ever published for explicit -beta tags, never
+        # on a stable release.
+        if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref_name, '-beta')
         uses: softprops/action-gh-release@v2
         with:
           files: app/build/outputs/apk/debug/*.apk
           generate_release_notes: false
-          prerelease: ${{ contains(github.ref_name, '-beta') }}
-          draft: ${{ !contains(github.ref_name, '-beta') }}
+          prerelease: true
+          draft: false
           name: RivetMSP Android ${{ github.ref_name }}
 
   build-release:
@@ -98,9 +102,23 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-beta')
     needs: build-debug
+    environment: production
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag commit is on a protected branch
+        run: |
+          git fetch origin beta main || true
+          if ! { git merge-base --is-ancestor "$GITHUB_SHA" origin/main 2>/dev/null || \
+                 git merge-base --is-ancestor "$GITHUB_SHA" origin/beta 2>/dev/null; }; then
+            echo "Tagged commit is not on main or beta; refusing to sign." >&2
+            exit 1
+          fi
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -136,6 +154,10 @@ jobs:
             -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
             -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
             -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
+
+      - name: Remove keystore
+        if: always()
+        run: rm -f app/keystore.jks
 
       - name: Attach release APK to GitHub Release
         uses: softprops/action-gh-release@v2
