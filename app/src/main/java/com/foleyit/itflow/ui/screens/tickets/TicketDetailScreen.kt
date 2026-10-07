@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.outlined.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,16 +53,16 @@ fun TicketDetailScreen(id: Int, navController: NavController) {
     val snackbar = remember { SnackbarHostState() }
 
     // Timer
-    var timerRunning by remember { mutableStateOf(false) }
-    var elapsed by remember { mutableLongStateOf(0L) }
-    var timerStart by remember { mutableLongStateOf(0L) }
+    var timerRunning by rememberSaveable { mutableStateOf(false) }
+    var elapsed by rememberSaveable { mutableLongStateOf(0L) }
+    var timerStart by rememberSaveable { mutableLongStateOf(0L) }
 
     // Sheets
-    var showReply by remember { mutableStateOf(false) }
-    var showStatusPicker by remember { mutableStateOf(false) }
-    var showAddWorksheet by remember { mutableStateOf(false) }
-    var showAddOuttake by remember { mutableStateOf(false) }
-    var showResolveConfirm by remember { mutableStateOf(false) }
+    var showReply by rememberSaveable { mutableStateOf(false) }
+    var showStatusPicker by rememberSaveable { mutableStateOf(false) }
+    var showAddWorksheet by rememberSaveable { mutableStateOf(false) }
+    var showAddOuttake by rememberSaveable { mutableStateOf(false) }
+    var showResolveConfirm by rememberSaveable { mutableStateOf(false) }
     var charges by remember { mutableStateOf<ChargesResponse?>(null) }
     var worksheets by remember { mutableStateOf<List<WorksheetSummary>>(emptyList()) }
     var outtakes by remember { mutableStateOf<List<OuttakeSummary>>(emptyList()) }
@@ -162,7 +163,7 @@ fun TicketDetailScreen(id: Int, navController: NavController) {
                         load()
                         if (elapsed > 0) elapsed = 0L
                     }.onFailure {
-                        snackbar.showSnackbar("Failed to save note: ${userMessage(it)}")
+                        snackbar.showSnackbar("Failed to save ${if (type == "reply") "reply" else "note"}: ${userMessage(it)}")
                     }
                 }
                 showReply = false
@@ -309,7 +310,7 @@ fun TicketDetailScreen(id: Int, navController: NavController) {
     ) { padding ->
         when {
             state == null -> LoadingScreen()
-            state!!.isFailure -> ErrorScreen(state!!.exceptionOrNull()?.message ?: "Error", onRetry = ::load)
+            state!!.isFailure -> ErrorScreen(userMessage(state!!.exceptionOrNull()!!), onRetry = ::load)
             else -> {
                 val ticket = state!!.getOrThrow()
                 LazyColumn(
@@ -494,12 +495,15 @@ private fun ReplySheet(
     onDismiss: () -> Unit,
     onSubmit: (reply: String, type: String, timeWorked: String, onsite: Boolean, statusId: Int?) -> Unit
 ) {
-    var reply by remember { mutableStateOf("") }
+    var reply by rememberSaveable { mutableStateOf("") }
     val (initialH, initialM) = remember(defaultTimeWorked) { parseHoursMinutes(defaultTimeWorked) }
-    var hours by remember { mutableIntStateOf(initialH) }
-    var minutes by remember { mutableIntStateOf(initialM) }
-    var onsite by remember { mutableStateOf(false) }
-    var selectedStatusId by remember { mutableStateOf<Int?>(null) }
+    var hours by rememberSaveable { mutableIntStateOf(initialH) }
+    var minutes by rememberSaveable { mutableIntStateOf(initialM) }
+    var onsite by rememberSaveable { mutableStateOf(false) }
+    // The API takes type "note" (stored Internal, staff-only) or "reply" (agent reply the client
+    // can see; the server also moves the ticket to Waiting on Customer unless a status is chosen).
+    var isPublic by rememberSaveable { mutableStateOf(false) }
+    var selectedStatusId by rememberSaveable { mutableStateOf<Int?>(null) }
 
     // Mirrors the web app's reply-form "Submit & set status to…" dropdown, which excludes
     // "New" (not a status a reply returns a ticket to) and "Closed" (only ever reached via
@@ -513,7 +517,29 @@ private fun ReplySheet(
             .padding(horizontal = 16.dp)
             .verticalScroll(rememberScrollState())
             .navigationBarsPadding()) {
-            Text("Add Note", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(if (isPublic) "Reply to Client" else "Add Note",
+                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(12.dp))
+            // Internal note / public reply toggle
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = !isPublic,
+                    onClick = { isPublic = false },
+                    label = { Text("Internal note") },
+                    leadingIcon = { Icon(Icons.Outlined.Lock, null, Modifier.size(16.dp)) }
+                )
+                FilterChip(
+                    selected = isPublic,
+                    onClick = { isPublic = true },
+                    label = { Text("Public reply") },
+                    leadingIcon = { Icon(Icons.Outlined.Forum, null, Modifier.size(16.dp)) }
+                )
+            }
+            if (isPublic) {
+                Spacer(Modifier.height(4.dp))
+                Text("Visible to the client.", style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Spacer(Modifier.height(12.dp))
             // Remote / On-Site toggle
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -534,7 +560,7 @@ private fun ReplySheet(
             OutlinedTextField(
                 value = reply, onValueChange = { reply = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Note") },
+                label = { Text(if (isPublic) "Reply" else "Note") },
                 minLines = 4, maxLines = 8
             )
             Spacer(Modifier.height(16.dp))
@@ -577,11 +603,11 @@ private fun ReplySheet(
                             val timeWorked = if (hours > 0 || minutes > 0)
                                 "${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00"
                             else ""
-                            onSubmit(reply, "note", timeWorked, onsite, selectedStatusId)
+                            onSubmit(reply, if (isPublic) "reply" else "note", timeWorked, onsite, selectedStatusId)
                         }
                     },
                     enabled = reply.isNotBlank()
-                ) { Text("Add Note") }
+                ) { Text(if (isPublic) "Send Reply" else "Add Note") }
             }
             Spacer(Modifier.height(8.dp))
         }
@@ -757,7 +783,7 @@ private fun ReplyCard(reply: TicketReply, ticketId: Int, onDeleted: () -> Unit, 
 @Composable
 private fun ChargesCard(cr: ChargesResponse?, onSaveCharge: ((name: String, desc: String, qty: Double, price: Double) -> Unit)? = null) {
     val currency = NumberFormat.getCurrencyInstance(Locale.US)
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
         Column(Modifier.padding(16.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
@@ -1030,11 +1056,11 @@ private fun AddChargeForm(
     onCancel: () -> Unit,
     onSave: (name: String, desc: String, qty: Double, price: Double) -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var desc by remember { mutableStateOf("") }
-    var qty by remember { mutableIntStateOf(1) }
-    var price by remember { mutableStateOf("") }
-    var productSearch by remember { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf("") }
+    var desc by rememberSaveable { mutableStateOf("") }
+    var qty by rememberSaveable { mutableIntStateOf(1) }
+    var price by rememberSaveable { mutableStateOf("") }
+    var productSearch by rememberSaveable { mutableStateOf("") }
     var products by remember { mutableStateOf<List<Product>>(emptyList()) }
     val total = remember(qty, price) { qty * (price.toDoubleOrNull() ?: 0.0) }
     val currency = NumberFormat.getCurrencyInstance(Locale.US)

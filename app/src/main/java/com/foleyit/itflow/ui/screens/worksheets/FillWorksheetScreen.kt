@@ -18,6 +18,7 @@ import com.foleyit.itflow.ui.components.LoadingScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.foleyit.itflow.ui.util.userMessage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +36,7 @@ fun FillWorksheetScreen(worksheetId: Int, navController: NavController) {
         scope.launch {
             val result = runCatching { ApiClient.service().getWorksheet(worksheetId) }
             worksheet = result.getOrNull()
-            loadError = if (result.isFailure) result.exceptionOrNull()?.message ?: "Failed to load" else null
+            loadError = result.exceptionOrNull()?.let { userMessage(it) }
             worksheet?.fields?.forEach { f ->
                 if (!f.value.isNullOrEmpty()) fieldValues = fieldValues + (f.id to f.value)
             }

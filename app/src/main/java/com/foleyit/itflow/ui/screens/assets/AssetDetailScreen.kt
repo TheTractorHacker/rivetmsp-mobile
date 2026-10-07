@@ -21,6 +21,7 @@ import com.foleyit.itflow.ui.util.fmtDate
 import com.foleyit.itflow.ui.components.ErrorScreen
 import com.foleyit.itflow.ui.components.LoadingScreen
 import kotlinx.coroutines.launch
+import com.foleyit.itflow.ui.util.userMessage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +49,7 @@ fun AssetDetailScreen(id: Int, navController: NavController) {
     ) { padding ->
         when {
             state == null -> LoadingScreen()
-            state!!.isFailure -> ErrorScreen(state!!.exceptionOrNull()?.message ?: "Error", onRetry = ::load)
+            state!!.isFailure -> ErrorScreen(userMessage(state!!.exceptionOrNull()!!), onRetry = ::load)
             else -> {
                 val a = state!!.getOrThrow()
                 LazyColumn(

@@ -20,7 +20,8 @@ interface ApiService {
     @POST("auth")
     suspend fun passkeyComplete(@Body req: PasskeyCompleteRequest): LoginResponse
 
-    // Dashboard
+    // Dashboard (counts + unread badge change constantly; revalidate, keep the offline copy)
+    @Headers("Cache-Control: max-age=0")
     @GET("dashboard")
     suspend fun getDashboard(): DashboardResponse
 
@@ -296,7 +297,9 @@ interface ApiService {
         @Part receipt: MultipartBody.Part?
     )
 
-    // Notifications
+    // Notifications — state changes on every mark-read, so revalidate instead of serving the
+    // 5-minute disk copy (max-age=0 still lets the offline fallback read the stored response).
+    @Headers("Cache-Control: max-age=0")
     @GET("notifications")
     suspend fun getNotifications(@Query("page") page: Int = 1): NotificationsResponse
 
@@ -408,6 +411,7 @@ interface ApiService {
     @POST("notifications/read-all")
     suspend fun markAllRead()
 
+    @Headers("Cache-Control: max-age=0")
     @GET("alerts")
     suspend fun getAlerts(
         @Query("status") status: String = "new",

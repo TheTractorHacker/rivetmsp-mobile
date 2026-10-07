@@ -22,12 +22,15 @@ import com.foleyit.itflow.data.api.ProjectDetail
 import com.foleyit.itflow.data.api.ProjectMilestone
 import com.foleyit.itflow.data.api.ProjectTask
 import com.foleyit.itflow.data.api.ProjectTicket
+import com.foleyit.itflow.ui.components.EmptyScreen
 import com.foleyit.itflow.ui.components.ErrorScreen
 import com.foleyit.itflow.ui.components.LoadingScreen
 import com.foleyit.itflow.ui.components.SectionLabel
 import com.foleyit.itflow.ui.navigation.Screen
 import com.foleyit.itflow.ui.util.fmtDate
 import kotlinx.coroutines.launch
+import com.foleyit.itflow.ui.util.userMessage
+import com.foleyit.itflow.ui.util.isFeatureUnavailable
 
 private fun parseHexColor(hex: String?): Color? = try {
     if (hex.isNullOrBlank()) null
@@ -98,7 +101,9 @@ fun ProjectDetailScreen(id: Int, navController: NavController) {
     ) { padding ->
         when {
             state == null -> LoadingScreen()
-            state!!.isFailure -> ErrorScreen(state!!.exceptionOrNull()?.message ?: "Error", onRetry = ::load)
+            state!!.exceptionOrNull()?.isFeatureUnavailable() == true ->
+                EmptyScreen("Project details aren't available on this server")
+            state!!.isFailure -> ErrorScreen(userMessage(state!!.exceptionOrNull()!!), onRetry = ::load)
             else -> {
                 val p = state!!.getOrThrow()
                 val ticketsClosed = p.tickets.count { it.closedAt != null }

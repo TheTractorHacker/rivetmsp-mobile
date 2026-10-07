@@ -35,6 +35,7 @@ import com.foleyit.itflow.ui.theme.statusColors
 import com.foleyit.itflow.ui.util.fmtDate
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import com.foleyit.itflow.ui.util.userMessage
 
 @Composable
 fun DashboardScreen(navController: NavController) {
@@ -72,7 +73,7 @@ fun DashboardScreen(navController: NavController) {
 
     when {
         state == null -> LoadingScreen()
-        state!!.isFailure -> ErrorScreen(state!!.exceptionOrNull()?.message ?: "Error", onRetry = ::load)
+        state!!.isFailure -> ErrorScreen(userMessage(state!!.exceptionOrNull()!!), onRetry = ::load)
         else -> {
             val dash = state!!.getOrThrow()
             val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)

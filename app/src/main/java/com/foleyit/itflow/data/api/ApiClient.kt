@@ -74,12 +74,17 @@ object ApiClient {
             }
             // Serve stale cache when offline
             .addInterceptor { chain ->
-                val request = if (!isOnline()) {
-                    chain.request().newBuilder()
-                        .cacheControl(CacheControl.FORCE_CACHE)
-                        .build()
-                } else chain.request()
-                chain.proceed(request)
+                if (isOnline()) return@addInterceptor chain.proceed(chain.request())
+                val response = chain.proceed(
+                    chain.request().newBuilder().cacheControl(CacheControl.FORCE_CACHE).build()
+                )
+                // A cache miss while offline comes back as OkHttp's synthetic 504. Surface it as
+                // an IOException so callers show "offline" rather than "the server had a problem".
+                if (response.code == 504 && response.networkResponse == null && response.cacheResponse == null) {
+                    response.close()
+                    throw java.io.IOException("Offline and no cached copy available")
+                }
+                response
             }
             // Only cache GETs for 5 minutes (private) when the server gave no
             // caching directive; never override no-store/private/other server policy.
@@ -97,6 +102,14 @@ object ApiClient {
                     _token?.let { addHeader("Authorization", "Bearer $it") }
                 }.build()
                 chain.proceed(req)
+            }
+            // A successful write makes every cached GET (ticket/notification/alert lists...)
+            // stale, so drop them — otherwise a list reopened within the 5-minute cache window
+            // still shows the pre-write state (e.g. a ticket just created, a note just read).
+            .addInterceptor { chain ->
+                val response = chain.proceed(chain.request())
+                if (chain.request().method != "GET" && response.isSuccessful) clearHttpCache()
+                response
             }
             // 401 auto-logout
             .addInterceptor { chain ->

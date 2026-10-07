@@ -30,3 +30,9 @@ fun userMessage(e: Throwable): String = when (e) {
     is IOException -> "Network error — check your connection and try again."
     else -> "Something went wrong. Please try again."
 }
+
+/**
+ * True when the server answered 404 for a whole feature endpoint (e.g. `/projects` on a server
+ * edition that doesn't ship it) — the screen should say "not available here" rather than "error".
+ */
+fun Throwable.isFeatureUnavailable(): Boolean = this is HttpException && code() == 404

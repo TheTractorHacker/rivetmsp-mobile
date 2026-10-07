@@ -7,6 +7,7 @@ import com.foleyit.itflow.data.api.CrashReportRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -32,6 +33,7 @@ import java.util.TimeZone
 object CrashReporter {
     private const val CRASH_FILE = "pending_crash.txt"
     private const val META_LINES = 7
+    private const val TRIMMED_TRACE_CHARS = 600
 
     private val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
@@ -81,8 +83,8 @@ object CrashReporter {
         CoroutineScope(Dispatchers.IO).launch {
             val sent = runCatching {
                 val lines = file.readText().split("\n")
-                if (lines.size <= META_LINES) return@runCatching false
-                val request = CrashReportRequest(
+                if (lines.size <= META_LINES) return@runCatching true // malformed: nothing worth retrying
+                fun request(stackTrace: String) = CrashReportRequest(
                     appVersionName = lines[0],
                     appVersionCode = lines[1].toIntOrNull() ?: 0,
                     deviceModel = lines[2],
@@ -90,11 +92,24 @@ object CrashReporter {
                     sdkInt = lines[4].toIntOrNull() ?: 0,
                     threadName = lines[5],
                     occurredAt = lines[6],
-                    stackTrace = lines.drop(META_LINES).joinToString("\n")
+                    stackTrace = stackTrace
                 )
-                ApiClient.service().reportCrash(request)
+                val stackTrace = lines.drop(META_LINES).joinToString("\n")
+                try {
+                    ApiClient.service().reportCrash(request(stackTrace))
+                } catch (e: HttpException) {
+                    // A server-side failure (e.g. a log column narrower than the report) would
+                    // otherwise make every launch re-send the same oversized report forever.
+                    // Retry once with just the top of the trace; whatever the outcome, stop.
+                    if (e.code() < 500) throw e
+                    runCatching { ApiClient.service().reportCrash(request(stackTrace.take(TRIMMED_TRACE_CHARS))) }
+                }
                 true
-            }.getOrDefault(false)
+            }.getOrElse { e ->
+                // Keep the file for the next launch only when the failure was transient
+                // (connectivity) or the server isn't configured yet; an HTTP rejection is final.
+                e is HttpException
+            }
 
             if (sent) {
                 runCatching { file.delete() }

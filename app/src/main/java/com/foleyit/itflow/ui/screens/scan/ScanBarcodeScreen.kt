@@ -36,6 +36,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.foleyit.itflow.data.api.ApiClient
@@ -80,9 +81,29 @@ fun ScanBarcodeScreen(navController: NavController) {
     val toneGenerator = remember { runCatching { ToneGenerator(AudioManager.STREAM_NOTIFICATION, 90) }.getOrNull() }
     DisposableEffect(Unit) { onDispose { toneGenerator?.release() } }
 
+    // After a deny that Android won't prompt for again (denied twice, or "Don't ask again"),
+    // the only way back is the app's system settings page, so the button switches to that.
+    var permanentlyDenied by remember { mutableStateOf(false) }
+    val activity = androidx.activity.compose.LocalActivity.current
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted -> hasCameraPermission = granted }
+    ) { granted ->
+        hasCameraPermission = granted
+        permanentlyDenied = !granted && activity != null &&
+            !ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.CAMERA)
+    }
+
+    // Coming back from the settings page: pick up a grant made there.
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                hasCameraPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                    PackageManager.PERMISSION_GRANTED
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(Unit) {
         if (!hasCameraPermission) {
@@ -191,8 +212,22 @@ fun ScanBarcodeScreen(navController: NavController) {
                         Text("Camera access is needed to scan asset barcodes.",
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(24.dp))
-                        Button(onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) }) {
-                            Text("Grant Permission")
+                        if (permanentlyDenied) {
+                            Text("Camera access was turned off. Enable it in the app's settings to scan.",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(Modifier.height(16.dp))
+                            Button(onClick = {
+                                context.startActivity(
+                                    android.content.Intent(
+                                        android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                        android.net.Uri.fromParts("package", context.packageName, null)
+                                    )
+                                )
+                            }) { Text("Open Settings") }
+                        } else {
+                            Button(onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) }) {
+                                Text("Grant Permission")
+                            }
                         }
                     }
                 }

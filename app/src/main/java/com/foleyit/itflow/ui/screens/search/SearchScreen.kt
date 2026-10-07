@@ -31,6 +31,7 @@ import com.foleyit.itflow.ui.theme.statusColors
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.foleyit.itflow.ui.util.userMessage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +55,7 @@ fun SearchScreen(navController: NavController) {
             loading = true
             val r = runCatching { ApiClient.service().search(q) }
             result = r.getOrNull()
-            error = r.exceptionOrNull()?.localizedMessage
+            error = r.exceptionOrNull()?.let { userMessage(it) }
             loading = false
         }
     }

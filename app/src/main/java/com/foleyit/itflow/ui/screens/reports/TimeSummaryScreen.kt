@@ -18,6 +18,7 @@ import com.foleyit.itflow.ui.components.ErrorScreen
 import com.foleyit.itflow.ui.components.LoadingScreen
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import com.foleyit.itflow.ui.util.userMessage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +65,7 @@ fun TimeSummaryScreen(navController: NavController) {
 
             when {
                 state == null -> LoadingScreen()
-                state!!.isFailure -> ErrorScreen(state!!.exceptionOrNull()?.message ?: "Error", onRetry = ::load)
+                state!!.isFailure -> ErrorScreen(userMessage(state!!.exceptionOrNull()!!), onRetry = ::load)
                 else -> {
                     val report = state!!.getOrThrow()
                     LazyColumn(

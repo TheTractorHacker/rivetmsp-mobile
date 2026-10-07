@@ -33,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import com.foleyit.itflow.ui.util.userMessage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -163,7 +164,7 @@ fun OuttakeSignScreen(outtakeId: Int, navController: NavController) {
     ) { padding ->
         when {
             outtake == null -> LoadingScreen()
-            outtake!!.isFailure -> ErrorScreen(outtake!!.exceptionOrNull()?.message ?: "")
+            outtake!!.isFailure -> ErrorScreen(userMessage(outtake!!.exceptionOrNull()!!))
             else -> {
                 val ot = outtake!!.getOrThrow()
                 LazyColumn(

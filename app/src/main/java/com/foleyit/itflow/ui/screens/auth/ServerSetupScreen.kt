@@ -13,6 +13,7 @@ import androidx.compose.material.icons.outlined.SyncAlt
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import com.foleyit.itflow.data.api.ApiClient
 import com.foleyit.itflow.data.local.AppPreferences
 import com.foleyit.itflow.data.ssl.FingerprintTrustManager
@@ -43,7 +45,7 @@ import javax.net.ssl.SSLHandshakeException
 
 @Composable
 fun ServerSetupScreen(prefs: AppPreferences, onDone: () -> Unit) {
-    var url by remember { mutableStateOf("https://") }
+    var url by rememberSaveable { mutableStateOf("https://") }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var pendingCert by remember { mutableStateOf<X509Certificate?>(null) }
@@ -101,10 +103,17 @@ fun ServerSetupScreen(prefs: AppPreferences, onDone: () -> Unit) {
         val confirmed = fingerprintSuffixMatches(confirmInput, fingerprint)
         AlertDialog(
             onDismissRequest = { pendingCert = null },
+            // Let the dialog resize above the soft keyboard (otherwise "Trust & Connect" sits
+            // behind it while the confirmation text is being typed).
+            modifier = Modifier.imePadding(),
+            properties = DialogProperties(decorFitsSystemWindows = false),
             icon = { Icon(Icons.Outlined.Warning, null, tint = MaterialTheme.colorScheme.error) },
             title = { Text("Untrusted Certificate") },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
                         "This server's certificate is not signed by a trusted authority. If you " +
                         "did not set up this server yourself, or you're on a network you don't " +

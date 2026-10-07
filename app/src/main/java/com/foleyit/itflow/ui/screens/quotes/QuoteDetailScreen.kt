@@ -24,6 +24,7 @@ import com.foleyit.itflow.ui.theme.statusColors
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
+import com.foleyit.itflow.ui.util.userMessage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +39,7 @@ fun QuoteDetailScreen(id: Int, navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(state?.getOrNull()?.subject?.takeIf { it.isNotBlank() } ?: "Quote") },
+                title = { Text(state?.getOrNull()?.let(::quoteHeading) ?: "Quote") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back")
@@ -49,7 +50,7 @@ fun QuoteDetailScreen(id: Int, navController: NavController) {
     ) { padding ->
     when {
         state == null -> Box(Modifier.fillMaxSize().padding(padding)) { LoadingScreen() }
-        state!!.isFailure -> Box(Modifier.fillMaxSize().padding(padding)) { ErrorScreen(state!!.exceptionOrNull()?.message ?: "", onRetry = ::load) }
+        state!!.isFailure -> Box(Modifier.fillMaxSize().padding(padding)) { ErrorScreen(userMessage(state!!.exceptionOrNull()!!), onRetry = ::load) }
         else -> {
             val q = state!!.getOrThrow()
             val statusColor: Color = MaterialTheme.statusColors.forFinancialStatus(q.status)
@@ -58,7 +59,7 @@ fun QuoteDetailScreen(id: Int, navController: NavController) {
                     Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
                         Column(Modifier.padding(16.dp)) {
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                Text(q.subject ?: "", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                Text(quoteHeading(q), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                                 q.guestUrl?.let {
                                     val url = "${ApiClient.serverUrl}$it"
                                     IconButton(onClick = { com.foleyit.itflow.ui.util.openWebUrl(context, url) }) { Icon(Icons.Outlined.OpenInBrowser, "Open in browser") }
@@ -103,3 +104,7 @@ fun QuoteDetailScreen(id: Int, navController: NavController) {
     }
     }
 }
+
+/** Quotes often have no subject; fall back to the quote number so the screen still identifies itself. */
+private fun quoteHeading(q: QuoteDetail): String =
+    q.subject?.takeIf { it.isNotBlank() } ?: q.number?.let { "Quote #$it" } ?: "Quote"

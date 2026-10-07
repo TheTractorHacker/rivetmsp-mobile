@@ -22,6 +22,7 @@ import com.foleyit.itflow.ui.components.LoadMoreRow
 import com.foleyit.itflow.ui.components.LoadingScreen
 import com.foleyit.itflow.ui.navigation.Screen
 import com.foleyit.itflow.ui.util.fmtDate
+import com.foleyit.itflow.ui.util.isFeatureUnavailable
 import com.foleyit.itflow.ui.util.rememberPagedList
 import com.foleyit.itflow.ui.util.userMessage
 
@@ -74,6 +75,8 @@ fun ContractsScreen(navController: NavController) {
             val ls = list.state
             when {
                 ls.isRefreshing -> LoadingScreen()
+                ls.error?.isFeatureUnavailable() == true ->
+                    EmptyScreen("Contracts aren't available on this server", Icons.Outlined.Description)
                 ls.error != null -> ErrorScreen(userMessage(ls.error), onRetry = list::retry)
                 ls.items.isEmpty() -> EmptyScreen("No contracts found", Icons.Outlined.Description)
                 else -> {

@@ -24,6 +24,7 @@ import com.foleyit.itflow.ui.theme.statusColors
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
+import com.foleyit.itflow.ui.util.userMessage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +50,7 @@ fun InvoiceDetailScreen(id: Int, navController: NavController) {
     ) { padding ->
     when {
         state == null -> Box(Modifier.fillMaxSize().padding(padding)) { LoadingScreen() }
-        state!!.isFailure -> Box(Modifier.fillMaxSize().padding(padding)) { ErrorScreen(state!!.exceptionOrNull()?.message ?: "", onRetry = ::load) }
+        state!!.isFailure -> Box(Modifier.fillMaxSize().padding(padding)) { ErrorScreen(userMessage(state!!.exceptionOrNull()!!), onRetry = ::load) }
         else -> {
             val inv = state!!.getOrThrow()
             val statusColor: Color = MaterialTheme.statusColors.forFinancialStatus(inv.status)
@@ -66,10 +67,11 @@ fun InvoiceDetailScreen(id: Int, navController: NavController) {
                             }
                             Text(inv.client ?: "", color = MaterialTheme.colorScheme.primary)
                             Spacer(Modifier.height(12.dp))
+                            // Servers that don't report a balance fall back to the total, labelled "Total" so a part-paid invoice doesn't read as fully owing.
                             Row {
                                 Column(Modifier.weight(1f)) { Text("Date", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline); Text(inv.date ?: "") }
                                 Column(Modifier.weight(1f)) { Text("Due", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline); Text(inv.dueDate ?: "", color = if (inv.status == "Overdue") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface) }
-                                Column(Modifier.weight(1f), horizontalAlignment = androidx.compose.ui.Alignment.End) { Text("Balance", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline); Text(currency.format(inv.balance ?: inv.total ?: 0.0), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium) }
+                                Column(Modifier.weight(1f), horizontalAlignment = androidx.compose.ui.Alignment.End) { Text(if (inv.balance != null) "Balance" else "Total", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline); Text(currency.format(inv.balance ?: inv.total ?: 0.0), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium) }
                             }
                         }
                     }

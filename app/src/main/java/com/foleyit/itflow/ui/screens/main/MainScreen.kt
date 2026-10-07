@@ -1,5 +1,12 @@
 package com.foleyit.itflow.ui.screens.main
 
+import android.Manifest
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -12,7 +19,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.*
 import com.foleyit.itflow.data.api.ApiClient
@@ -52,13 +62,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// Routes that show the main ITFlow MSP AppBar
+// Routes that show the main ITFlow MSP AppBar. Screens that draw their own TopAppBar (with a
+// Back button) — Credentials, Quotes, Invoices, Expenses, Notifications — must not be listed
+// here, or they stack a second bar beneath the brand bar.
 private val ROOT_ROUTES = setOf(
     Screen.Dashboard.route, Screen.Tickets.route, Screen.Clients.route,
     Screen.Assets.route, Screen.Projects.route, Screen.Contracts.route, Screen.Appointments.route,
-    Screen.Credentials.route, Screen.Quotes.route,
-    Screen.Invoices.route, Screen.Expenses.route,
-    Screen.Notifications.route, Screen.Alerts.route
+    Screen.Alerts.route
 )
 
 // The 5 true root screens — only these show the floating bottom nav (the rest of ROOT_ROUTES
@@ -80,6 +90,40 @@ fun MainScreen(
     var userName by remember { mutableStateOf("") }
     var userEmail by remember { mutableStateOf("") }
     var hasUnreadNotifications by remember { mutableStateOf(false) }
+
+    var showSignOutConfirm by remember { mutableStateOf(false) }
+    val snackbar = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
+    // Android 13+ requires the runtime POST_NOTIFICATIONS grant before push alerts are shown.
+    // Ask once, right after sign-in lands here; if it is declined, say what that costs and offer
+    // a shortcut to the system notification settings (the system won't re-prompt after a deny).
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (!granted) scope.launch {
+            val result = snackbar.showSnackbar(
+                message = "Notifications are off, so you won't get ticket alerts.",
+                actionLabel = "Settings",
+                duration = SnackbarDuration.Long
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                })
+            }
+        }
+    }
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
+            !prefs.notificationPrompted.first()
+        ) {
+            prefs.setNotificationPrompted()
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    // Back should dismiss an open navigation drawer before it is allowed to leave the app.
+    BackHandler(enabled = drawerState.isOpen) { scope.launch { drawerState.close() } }
 
     val themeMode by prefs.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
     val isDarkMode = when (themeMode) {
@@ -144,6 +188,20 @@ fun MainScreen(
         }
     }
 
+    if (showSignOutConfirm) {
+        AlertDialog(
+            onDismissRequest = { showSignOutConfirm = false },
+            title = { Text("Sign Out?") },
+            text = { Text("You'll need to sign in again to access your account.") },
+            confirmButton = {
+                TextButton(onClick = { showSignOutConfirm = false; signOut() }) {
+                    Text("Sign Out", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { showSignOutConfirm = false }) { Text("Cancel") } }
+        )
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -154,11 +212,12 @@ fun MainScreen(
                 isDarkMode = isDarkMode,
                 onToggleDarkMode = { dark -> scope.launch { prefs.setThemeMode(if (dark) ThemeMode.DARK else ThemeMode.LIGHT) } },
                 onNavigate = ::closeDrawerAndNavigate,
-                onSignOut = { scope.launch { drawerState.close() }; signOut() },
+                onSignOut = { scope.launch { drawerState.close() }; showSignOutConfirm = true },
             )
         }
     ) {
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             if (isRootScreen) {
                 TopAppBar(
@@ -207,7 +266,9 @@ fun MainScreen(
         }
     ) { padding ->
         val isOnline by rememberIsOnline()
-        Column(Modifier.padding(padding)) {
+        // consumeWindowInsets: inner screens' own Scaffold/TopAppBar would otherwise add the
+        // status-bar inset a second time on top of this Scaffold's padding (a ~136px gap).
+        Column(Modifier.padding(padding).consumeWindowInsets(padding)) {
         if (!isOnline) {
             OfflineBanner()
         }

@@ -104,7 +104,7 @@ fun AppointmentsScreen(navController: NavController) {
 
         when {
             state == null -> LoadingScreen()
-            state!!.isFailure -> ErrorScreen(state!!.exceptionOrNull()?.message ?: "Error", onRetry = ::load)
+            state!!.isFailure -> ErrorScreen(userMessage(state!!.exceptionOrNull()!!), onRetry = ::load)
             else -> {
                 val appts = state!!.getOrThrow()
                 if (appts.isEmpty()) {

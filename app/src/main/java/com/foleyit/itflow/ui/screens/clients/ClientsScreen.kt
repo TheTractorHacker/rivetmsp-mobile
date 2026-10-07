@@ -14,6 +14,8 @@ import androidx.navigation.NavController
 import com.foleyit.itflow.data.api.ApiClient
 import com.foleyit.itflow.ui.components.*
 import com.foleyit.itflow.ui.navigation.Screen
+import com.foleyit.itflow.ui.util.initialOf
+import com.foleyit.itflow.ui.util.nameOrFallback
 import com.foleyit.itflow.ui.util.rememberPagedList
 import com.foleyit.itflow.ui.util.userMessage
 
@@ -48,14 +50,14 @@ fun ClientsScreen(navController: NavController) {
                     items(ls.items, key = { it.id }) { c ->
                         Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, onClick = { navController.navigate(Screen.ClientDetail.go(c.id)) }) {
                             ListItem(
-                                headlineContent = { Text(c.name, fontWeight = FontWeight.Medium) },
+                                headlineContent = { Text(nameOrFallback(c.name, "Unnamed client"), fontWeight = FontWeight.Medium) },
                                 supportingContent = if (c.city != null) {{ Text("${c.city}, ${c.state ?: ""}") }} else null,
                                 leadingContent = {
                                     Surface(shape = MaterialTheme.shapes.extraLarge,
                                         color = MaterialTheme.colorScheme.primaryContainer,
                                         modifier = Modifier.size(40.dp)) {
                                         Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
-                                            Text(c.name.first().uppercaseChar().toString(),
+                                            Text(initialOf(c.name),
                                                 fontWeight = FontWeight.Bold,
                                                 color = MaterialTheme.colorScheme.onPrimaryContainer)
                                         }

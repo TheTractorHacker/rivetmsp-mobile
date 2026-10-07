@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -25,6 +26,7 @@ import com.foleyit.itflow.data.api.ClientsResponse
 import com.foleyit.itflow.data.api.CreateTicketRequest
 import com.foleyit.itflow.data.api.TicketCategory
 import com.foleyit.itflow.ui.components.SectionLabel
+import com.foleyit.itflow.ui.navigation.Screen
 import com.foleyit.itflow.ui.theme.forPriority
 import com.foleyit.itflow.ui.theme.statusColors
 import com.foleyit.itflow.ui.util.userMessage
@@ -33,16 +35,16 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTicketScreen(navController: NavController) {
-    var subject by remember { mutableStateOf("") }
-    var details by remember { mutableStateOf("") }
-    var priority by remember { mutableStateOf("low") }
-    var selectedClientId by remember { mutableStateOf<Int?>(null) }
-    var selectedClientName by remember { mutableStateOf("") }
+    var subject by rememberSaveable { mutableStateOf("") }
+    var details by rememberSaveable { mutableStateOf("") }
+    var priority by rememberSaveable { mutableStateOf("low") }
+    var selectedClientId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var selectedClientName by rememberSaveable { mutableStateOf("") }
     var clients by remember { mutableStateOf<ClientsResponse?>(null) }
-    var showClientPicker by remember { mutableStateOf(false) }
+    var showClientPicker by rememberSaveable { mutableStateOf(false) }
     var categories by remember { mutableStateOf<List<TicketCategory>>(emptyList()) }
-    var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
-    var showCategoryPicker by remember { mutableStateOf(false) }
+    var selectedCategoryId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var showCategoryPicker by rememberSaveable { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -55,11 +57,11 @@ fun CreateTicketScreen(navController: NavController) {
     }
 
     fun submit() {
-        if (subject.isBlank()) { error = "Subject required"; return }
+        if (subject.isBlank()) { error = SUBJECT_REQUIRED; return }
         saving = true; error = null
         scope.launch {
             try {
-                ApiClient.service().createTicket(
+                val created = ApiClient.service().createTicket(
                     CreateTicketRequest(
                         subject = subject.trim(),
                         details = details.trim(),
@@ -68,7 +70,14 @@ fun CreateTicketScreen(navController: NavController) {
                         categoryId = selectedCategoryId
                     )
                 )
-                navController.popBackStack()
+                // Open the new ticket in place of this form (Back then returns to where the
+                // user started); fall back to just closing the form if the id is missing.
+                val newId = created["id"]
+                if (newId != null) {
+                    navController.navigate(Screen.TicketDetail.go(newId)) {
+                        popUpTo(Screen.CreateTicket.route) { inclusive = true }
+                    }
+                } else navController.popBackStack()
             } catch (e: Exception) {
                 error = userMessage(e)
             } finally { saving = false }
@@ -139,7 +148,14 @@ fun CreateTicketScreen(navController: NavController) {
                 tonalElevation = 3.dp,
                 shadowElevation = 8.dp
             ) {
-                Box(Modifier.fillMaxWidth().padding(16.dp).navigationBarsPadding()) {
+                Column(Modifier.fillMaxWidth().padding(16.dp).navigationBarsPadding()) {
+                    // Shown beside the button (not at the end of the scrolling form) so a
+                    // validation or network error is visible without scrolling.
+                    error?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 8.dp))
+                    }
                     Button(
                         onClick = ::submit,
                         enabled = !saving,
@@ -208,9 +224,11 @@ fun CreateTicketScreen(navController: NavController) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     SectionLabel("Details")
                     OutlinedTextField(
-                        value = subject, onValueChange = { subject = it },
+                        value = subject, onValueChange = { subject = it; if (error != null) error = null },
                         label = { Text("Subject *") },
-                        modifier = Modifier.fillMaxWidth(), singleLine = true
+                        modifier = Modifier.fillMaxWidth(), singleLine = true,
+                        isError = error == SUBJECT_REQUIRED,
+                        supportingText = if (error == SUBJECT_REQUIRED) {{ Text(SUBJECT_REQUIRED) }} else null
                     )
                     OutlinedTextField(
                         value = details, onValueChange = { details = it },
@@ -303,14 +321,11 @@ fun CreateTicketScreen(navController: NavController) {
                     }
                 }
             }
-
-            error?.let {
-                Text(it, color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall)
-            }
         }
     }
 }
+
+private const val SUBJECT_REQUIRED = "Subject required"
 
 @Composable
 private fun PriorityTile(

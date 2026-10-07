@@ -25,6 +25,7 @@ import com.foleyit.itflow.ui.theme.forAlertSeverity
 import com.foleyit.itflow.ui.theme.forAlertStatus
 import com.foleyit.itflow.ui.theme.statusColors
 import kotlinx.coroutines.launch
+import com.foleyit.itflow.ui.util.userMessage
 
 private val STATUS_TABS = listOf("new" to "New", "acknowledged" to "Acked", "resolved" to "Resolved", "all" to "All")
 
@@ -88,7 +89,7 @@ fun AlertsScreen(navController: NavController) {
 
         when {
             state == null -> LoadingScreen()
-            state!!.isFailure -> ErrorScreen(state!!.exceptionOrNull()?.message ?: "", onRetry = ::load)
+            state!!.isFailure -> ErrorScreen(userMessage(state!!.exceptionOrNull()!!), onRetry = ::load)
             else -> {
                 val alerts = state!!.getOrThrow()
                 if (alerts.isEmpty()) {

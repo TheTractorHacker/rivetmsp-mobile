@@ -26,6 +26,7 @@ class AppPreferences(context: Context) {
         val BIOMETRIC_LOCK    = booleanPreferencesKey("biometric_lock")
         val THEME_MODE        = stringPreferencesKey("theme_mode")
         val COLOR_SEED        = stringPreferencesKey("color_seed")
+        val NOTIF_PROMPTED    = booleanPreferencesKey("notification_permission_prompted")
     }
 
     private fun createSecurePrefs(): android.content.SharedPreferences {
@@ -68,6 +69,9 @@ class AppPreferences(context: Context) {
     val themeMode: Flow<String>        = ctx.dataStore.data.map { it[THEME_MODE] ?: "system" }
     // One of ColorSeed's ids ("foleyit"/"teal"/"sunset"/"forest"/"violet"); "foleyit" is default.
     val colorSeed: Flow<String>        = ctx.dataStore.data.map { it[COLOR_SEED] ?: "foleyit" }
+
+    // Whether we have already shown the Android 13+ POST_NOTIFICATIONS prompt (ask once, not on every launch).
+    val notificationPrompted: Flow<Boolean> = ctx.dataStore.data.map { it[NOTIF_PROMPTED] ?: false }
 
     val authToken: Flow<String?> = flow {
         emit(securePrefs?.getString("auth_token", null))
@@ -115,5 +119,9 @@ class AppPreferences(context: Context) {
 
     suspend fun setColorSeed(seed: String) {
         ctx.dataStore.edit { it[COLOR_SEED] = seed }
+    }
+
+    suspend fun setNotificationPrompted() {
+        ctx.dataStore.edit { it[NOTIF_PROMPTED] = true }
     }
 }

@@ -25,11 +25,14 @@ import com.foleyit.itflow.data.api.ContractAllowancePeriod
 import com.foleyit.itflow.data.api.ContractDetail
 import com.foleyit.itflow.data.api.ContractDocument
 import com.foleyit.itflow.data.api.ContractSlaTier
+import com.foleyit.itflow.ui.components.EmptyScreen
 import com.foleyit.itflow.ui.components.ErrorScreen
 import com.foleyit.itflow.ui.components.LoadingScreen
 import com.foleyit.itflow.ui.components.SectionLabel
 import com.foleyit.itflow.ui.util.fmtDate
 import kotlinx.coroutines.launch
+import com.foleyit.itflow.ui.util.userMessage
+import com.foleyit.itflow.ui.util.isFeatureUnavailable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +60,9 @@ fun ContractDetailScreen(id: Int, navController: NavController) {
     ) { padding ->
         when {
             state == null -> LoadingScreen()
-            state!!.isFailure -> ErrorScreen(state!!.exceptionOrNull()?.message ?: "Error", onRetry = ::load)
+            state!!.exceptionOrNull()?.isFeatureUnavailable() == true ->
+                EmptyScreen("Contract details aren't available on this server")
+            state!!.isFailure -> ErrorScreen(userMessage(state!!.exceptionOrNull()!!), onRetry = ::load)
             else -> {
                 val c = state!!.getOrThrow()
                 LazyColumn(

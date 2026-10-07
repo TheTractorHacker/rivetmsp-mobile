@@ -23,6 +23,7 @@ import com.foleyit.itflow.ui.components.LoadMoreRow
 import com.foleyit.itflow.ui.components.LoadingScreen
 import com.foleyit.itflow.ui.navigation.Screen
 import com.foleyit.itflow.ui.util.fmtDate
+import com.foleyit.itflow.ui.util.isFeatureUnavailable
 import com.foleyit.itflow.ui.util.rememberPagedList
 import com.foleyit.itflow.ui.util.userMessage
 
@@ -74,7 +75,7 @@ fun ProjectsScreen(navController: NavController) {
             val ls = list.state
             when {
                 ls.isRefreshing -> LoadingScreen()
-                (ls.error as? retrofit2.HttpException)?.code() == 404 ->
+                ls.error?.isFeatureUnavailable() == true ->
                     EmptyScreen("Projects aren't available on this server", Icons.Outlined.AccountTree)
                 ls.error != null -> ErrorScreen(userMessage(ls.error), onRetry = list::retry)
                 ls.items.isEmpty() -> EmptyScreen("No projects found", Icons.Outlined.AccountTree)

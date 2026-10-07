@@ -57,4 +57,11 @@ class ErrorMessagesTest {
         assertEquals("Something went wrong. Please try again.", msg)
         assertFalse(msg.contains("Secret"))
     }
+
+    @Test
+    fun `only a 404 counts as a feature the server does not offer`() {
+        assertEquals(true, httpException(404, """{"error":"Not found"}""").isFeatureUnavailable())
+        assertEquals(false, httpException(500, null).isFeatureUnavailable())
+        assertEquals(false, IOException("offline").isFeatureUnavailable())
+    }
 }

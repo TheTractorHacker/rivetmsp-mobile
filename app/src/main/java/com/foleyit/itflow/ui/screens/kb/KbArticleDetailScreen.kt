@@ -24,6 +24,7 @@ import com.foleyit.itflow.data.api.KbArticleDetail
 import com.foleyit.itflow.ui.components.ErrorScreen
 import com.foleyit.itflow.ui.components.LoadingScreen
 import kotlinx.coroutines.launch
+import com.foleyit.itflow.ui.util.userMessage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +56,7 @@ fun KbArticleDetailScreen(id: Int, navController: NavController) {
                 },
                 onFailure = {
                     Box(Modifier.fillMaxSize().padding(padding)) {
-                        ErrorScreen(it.message ?: "Failed to load article") {
+                        ErrorScreen(userMessage(it)) {
                             scope.launch { state = runCatching { ApiClient.service().getKbArticle(id) } }
                         }
                     }
