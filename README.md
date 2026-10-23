@@ -13,18 +13,17 @@ Built with Kotlin + Jetpack Compose + Material 3.
 
 ## Screenshots
 
-Captured on a Pixel 7 (Android 36) against a demo server with fictional data.
+Captured on a Pixel 7 (Android 36) against a demo server with fictional data. Light and dark versions of every screen are in `docs/screenshots/`. See the [user guide](docs/USER-GUIDE.md) for a walkthrough.
 
 <table>
-<tr><td align="center" width="25%"><b>Sign in</b></td><td align="center" width="25%"><b>Dashboard</b></td><td align="center" width="25%"><b>Tickets</b></td><td align="center" width="25%"><b>Ticket detail</b></td></tr>
-<tr><td><img src="docs/screenshots/01_login.png" width="100%" alt="Sign in"></td><td><img src="docs/screenshots/02_dashboard.png" width="100%" alt="Dashboard"></td><td><img src="docs/screenshots/03_tickets.png" width="100%" alt="Tickets"></td><td><img src="docs/screenshots/04_ticket_detail.png" width="100%" alt="Ticket detail"></td></tr>
+<tr><td align="center" width="25%"><b>Sign in</b></td><td align="center" width="25%"><b>Home</b></td><td align="center" width="25%"><b>Tickets</b></td><td align="center" width="25%"><b>Ticket detail</b></td></tr>
+<tr><td><img src="docs/screenshots/light/03_signin.png" width="100%" alt="Sign in"></td><td><img src="docs/screenshots/light/04_home.png" width="100%" alt="Home"></td><td><img src="docs/screenshots/light/05_tickets.png" width="100%" alt="Tickets"></td><td><img src="docs/screenshots/light/06_ticket_detail.png" width="100%" alt="Ticket detail"></td></tr>
 </table>
 
 <table>
-<tr><td align="center" width="25%"><b>Clients</b></td><td align="center" width="25%"><b>Assets</b></td><td align="center" width="25%"><b>New ticket</b></td></tr>
-<tr><td><img src="docs/screenshots/05_clients.png" width="100%" alt="Clients"></td><td><img src="docs/screenshots/06_assets.png" width="100%" alt="Assets"></td><td><img src="docs/screenshots/07_create_ticket.png" width="100%" alt="New ticket"></td></tr>
+<tr><td align="center" width="25%"><b>Clients</b></td><td align="center" width="25%"><b>Assets</b></td><td align="center" width="25%"><b>New ticket</b></td><td align="center" width="25%"><b>Home (dark)</b></td></tr>
+<tr><td><img src="docs/screenshots/light/07_clients.png" width="100%" alt="Clients"></td><td><img src="docs/screenshots/light/09_assets.png" width="100%" alt="Assets"></td><td><img src="docs/screenshots/light/13_new_ticket.png" width="100%" alt="New ticket"></td><td><img src="docs/screenshots/dark/04_home.png" width="100%" alt="Home, dark theme"></td></tr>
 </table>
-
 
 ---
 
