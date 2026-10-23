@@ -234,9 +234,8 @@ fun MainScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { navController.navigate(Screen.Search.route) }) {
-                            Icon(Icons.Outlined.Search, "Search")
-                        }
+                        // Search lives in the drawer and on Home; dropping it here gives the
+                        // company name room instead of truncating to "Northwind Ma…".
                         IconButton(onClick = { navController.navigate(Screen.Alerts.route) }) {
                             Icon(Icons.Outlined.Warning, "Alerts")
                         }

@@ -168,14 +168,16 @@ fun AssetsScreen(navController: NavController) {
                                         }
                                     },
                                     headlineContent = { Text(a.name, fontWeight = FontWeight.Medium) },
-                                    supportingContent = { Text(listOfNotNull(a.make, a.model).joinToString(" ")) },
-                                    trailingContent = {
-                                        Column(horizontalAlignment = Alignment.End) {
-                                            Text(a.client ?: "", style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.outline)
-                                            Icon(Icons.Outlined.ChevronRight, null)
+                                    supportingContent = {
+                                        Column {
+                                            Text(listOfNotNull(a.make, a.model).joinToString(" "))
+                                            if (!a.client.isNullOrBlank()) {
+                                                Text(a.client, style = MaterialTheme.typography.labelSmall,
+                                                    color = MaterialTheme.colorScheme.outline)
+                                            }
                                         }
-                                    }
+                                    },
+                                    trailingContent = { Icon(Icons.Outlined.ChevronRight, null) }
                                 )
                             }
                         }

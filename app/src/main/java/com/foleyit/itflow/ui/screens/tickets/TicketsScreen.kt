@@ -416,13 +416,15 @@ fun TicketCard(ticket: TicketSummary, onClick: () -> Unit) {
                     maxLines = 2)
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.Business, null,
-                        modifier = Modifier.size(13.dp),
-                        tint = MaterialTheme.colorScheme.outline)
-                    Spacer(Modifier.width(4.dp))
-                    Text(ticket.client ?: "",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.outline)
+                    if (!ticket.client.isNullOrBlank()) {
+                        Icon(Icons.Outlined.Business, null,
+                            modifier = Modifier.size(13.dp),
+                            tint = MaterialTheme.colorScheme.outline)
+                        Spacer(Modifier.width(4.dp))
+                        Text(ticket.client,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outline)
+                    }
                     ticket.dueAt?.let { due ->
                         Spacer(Modifier.width(8.dp))
                         Icon(Icons.Outlined.Schedule, null,
