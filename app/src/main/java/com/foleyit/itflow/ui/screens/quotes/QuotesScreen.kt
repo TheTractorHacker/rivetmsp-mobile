@@ -35,7 +35,9 @@ fun QuotesScreen(navController: NavController) {
         val ls = list.state
         when {
             ls.isRefreshing -> LoadingScreen()
-            ls.error != null -> ErrorScreen(userMessage(ls.error), onRetry = list::retry)
+            ls.error != null -> if ((ls.error as? retrofit2.HttpException)?.code() == 404)
+                EmptyScreen("Quotes aren't enabled on this server.")
+            else ErrorScreen(userMessage(ls.error), onRetry = list::retry)
             ls.items.isEmpty() -> EmptyScreen("No quotes", Icons.Outlined.RequestQuote)
             else -> {
                 LazyColumn(modifier = Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

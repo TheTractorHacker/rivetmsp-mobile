@@ -105,7 +105,9 @@ fun ServerSetupScreen(prefs: AppPreferences, onDone: () -> Unit) {
         val fingerprint = cert.sha256Fingerprint()
         val lastSix = remember(fingerprint) { fingerprint.replace(":", "").takeLast(6) }
         var confirmInput by remember(fingerprint) { mutableStateOf("") }
-        val confirmed = confirmInput.trim().equals(lastSix, ignoreCase = true)
+        // The prompt shows the characters colon-grouped (61:7D:49), so accept them as shown.
+        val confirmed = confirmInput.filterNot { it == ':' || it.isWhitespace() }
+            .equals(lastSix, ignoreCase = true)
         AlertDialog(
             onDismissRequest = { pendingCert = null },
             icon = { Icon(Icons.Outlined.Warning, null, tint = MaterialTheme.colorScheme.error) },

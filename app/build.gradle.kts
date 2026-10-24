@@ -39,9 +39,12 @@ android {
             applicationIdSuffix = ".beta"
             versionNameSuffix = "-beta"
             resValue("string", "app_name", "RivetIT Beta")
+            // Off unless a local build passes -PallowScreenshots=true (docs/screenshot capture only)
+            buildConfigField("boolean", "ALLOW_SCREENSHOTS", (findProperty("allowScreenshots") == "true").toString())
             signingConfig = signingConfigs.getByName("debug")
         }
         release {
+            buildConfigField("boolean", "ALLOW_SCREENSHOTS", "false")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

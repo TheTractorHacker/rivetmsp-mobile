@@ -283,6 +283,7 @@ fun FloatingBottomNavBar(
 ) {
     Surface(
         modifier = Modifier
+            .navigationBarsPadding() // keep the pill (and its labels) clear of the gesture handle
             .fillMaxWidth()
             .padding(horizontal = 10.dp, vertical = 10.dp)
             .height(64.dp),

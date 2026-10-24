@@ -43,7 +43,9 @@ fun ExpensesScreen(navController: NavController) {
         val ls = list.state
         when {
             ls.isRefreshing -> LoadingScreen()
-            ls.error != null -> ErrorScreen(userMessage(ls.error), onRetry = list::retry)
+            ls.error != null -> if ((ls.error as? retrofit2.HttpException)?.code() == 404)
+                EmptyScreen("Expenses aren't enabled on this server.")
+            else ErrorScreen(userMessage(ls.error), onRetry = list::retry)
             ls.items.isEmpty() -> EmptyScreen("No expenses. Tap + to add one.", Icons.Outlined.Receipt)
             else -> {
                 LazyColumn(modifier = Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 88.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

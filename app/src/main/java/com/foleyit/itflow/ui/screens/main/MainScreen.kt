@@ -52,13 +52,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// Routes that show the main RivetIT AppBar
+// Routes that show the main RivetIT AppBar. Screens that draw their own TopAppBar (Credentials,
+// Quotes, Invoices, Expenses, Notifications, ...) must NOT be listed, or they get two headers.
 private val ROOT_ROUTES = setOf(
     Screen.Dashboard.route, Screen.Tickets.route, Screen.Clients.route,
     Screen.Assets.route, Screen.Projects.route, Screen.Contracts.route, Screen.Appointments.route,
-    Screen.Credentials.route, Screen.Quotes.route,
-    Screen.Invoices.route, Screen.Expenses.route,
-    Screen.Notifications.route, Screen.Alerts.route
+    Screen.Alerts.route
 )
 
 // The 5 true root screens — only these show the floating bottom nav (the rest of ROOT_ROUTES
@@ -154,6 +153,10 @@ fun MainScreen(
         }
     ) {
     Scaffold(
+        // Screens without the brand bar draw their own TopAppBar, which already pads for the
+        // status bar; applying the top inset here as well left a dead gap above their title.
+        contentWindowInsets = if (isRootScreen) ScaffoldDefaults.contentWindowInsets
+            else ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
         topBar = {
             if (isRootScreen) {
                 TopAppBar(
@@ -263,7 +266,7 @@ fun MainScreen(
             }
             composable(Screen.Expenses.route) { ExpensesScreen(navController) }
             composable(Screen.AddExpense.route) { AddExpenseScreen { navController.popBackStack() } }
-            composable(Screen.Notifications.route) { NotificationsScreen() }
+            composable(Screen.Notifications.route) { NotificationsScreen(onBack = { navController.popBackStack() }) }
             composable(Screen.Alerts.route) { AlertsScreen(navController) }
             composable(Screen.Profile.route) { ProfileScreen(navController, prefs, onChangeServer, onLoggedOut) }
             composable(Screen.KnowledgeBase.route) { KnowledgeBaseScreen(navController) }

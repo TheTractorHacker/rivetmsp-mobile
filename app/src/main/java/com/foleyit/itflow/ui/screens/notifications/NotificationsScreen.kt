@@ -16,11 +16,12 @@ import com.foleyit.itflow.data.api.Notification
 import com.foleyit.itflow.ui.components.EmptyScreen
 import com.foleyit.itflow.ui.components.ErrorScreen
 import com.foleyit.itflow.ui.components.LoadingScreen
+import com.foleyit.itflow.ui.util.userMessage
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificationsScreen() {
+fun NotificationsScreen(onBack: () -> Unit) {
     var state by remember { mutableStateOf<Result<com.foleyit.itflow.data.api.NotificationsResponse>?>(null) }
     val scope = rememberCoroutineScope()
     fun load() { scope.launch { state = runCatching { ApiClient.service().getNotifications() } } }
@@ -29,6 +30,7 @@ fun NotificationsScreen() {
     Scaffold(topBar = {
         TopAppBar(
             title = { Text("Notifications") },
+            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Back") } },
             actions = {
                 state?.getOrNull()?.data?.takeIf { it.isNotEmpty() }?.let {
                     TextButton(onClick = { scope.launch { runCatching { ApiClient.service().markAllRead() }; load() } }) { Text("Mark all read") }
@@ -38,7 +40,7 @@ fun NotificationsScreen() {
     }) { padding ->
         when {
             state == null -> LoadingScreen()
-            state!!.isFailure -> ErrorScreen(state!!.exceptionOrNull()?.message ?: "", onRetry = ::load)
+            state!!.isFailure -> ErrorScreen(userMessage(state!!.exceptionOrNull()!!), onRetry = ::load)
             else -> {
                 val notifs = state!!.getOrThrow().data
                 if (notifs.isEmpty()) EmptyScreen("No new notifications", Icons.Outlined.NotificationsNone)

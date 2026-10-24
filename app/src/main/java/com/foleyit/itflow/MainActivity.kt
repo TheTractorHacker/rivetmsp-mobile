@@ -72,10 +72,12 @@ class MainActivity : FragmentActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         if (isRooted() && BuildConfig.DEBUG) android.util.Log.w("RivetIT", "Device appears rooted.")
-        window.setFlags(
-            android.view.WindowManager.LayoutParams.FLAG_SECURE,
-            android.view.WindowManager.LayoutParams.FLAG_SECURE
-        )
+        if (!BuildConfig.ALLOW_SCREENSHOTS) {
+            window.setFlags(
+                android.view.WindowManager.LayoutParams.FLAG_SECURE,
+                android.view.WindowManager.LayoutParams.FLAG_SECURE
+            )
+        }
         enableEdgeToEdge()
 
         val prefs = (application as RivetITApplication).prefs
@@ -98,6 +100,20 @@ class MainActivity : FragmentActivity() {
             val resolvedStart = startDestination ?: return@setContent
             val themeMode by prefs.themeMode.collectAsState(initial = com.foleyit.itflow.ui.theme.ThemeMode.SYSTEM)
             val colorSeed by prefs.colorSeed.collectAsState(initial = com.foleyit.itflow.ui.theme.ColorSeed.DEFAULT.id)
+            // System bar icon colour must follow the app's theme choice, not just the phone's,
+            // or a Dark-mode app on a light phone gets dark-on-dark (invisible) clock/battery.
+            val darkTheme = when (themeMode) {
+                com.foleyit.itflow.ui.theme.ThemeMode.LIGHT -> false
+                com.foleyit.itflow.ui.theme.ThemeMode.DARK -> true
+                else -> androidx.compose.foundation.isSystemInDarkTheme()
+            }
+            DisposableEffect(darkTheme) {
+                val barStyle = androidx.activity.SystemBarStyle.auto(
+                    android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT
+                ) { darkTheme }
+                enableEdgeToEdge(statusBarStyle = barStyle, navigationBarStyle = barStyle)
+                onDispose {}
+            }
             RivetITTheme(themeMode = themeMode, colorSeed = colorSeed) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
