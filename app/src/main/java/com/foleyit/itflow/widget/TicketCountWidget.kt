@@ -21,6 +21,7 @@ class TicketCountWidget : GlanceAppWidget() {
         val prefs   = context.getSharedPreferences("widget_cache", Context.MODE_PRIVATE)
         val open    = prefs.getInt("open", 0)
         val overdue = prefs.getInt("overdue", 0)
+        val companyName = com.foleyit.itflow.ui.branding.CompanyNameStore.last(context) ?: "RivetMSP"
 
         provideContent {
             Box(
@@ -33,7 +34,7 @@ class TicketCountWidget : GlanceAppWidget() {
             ) {
                 Column(modifier = GlanceModifier.fillMaxSize()) {
                     Text(
-                        "RivetMSP",
+                        companyName,
                         style = TextStyle(
                             color = ColorProvider(Color(0xFF6650A4)),
                             fontWeight = FontWeight.Bold,

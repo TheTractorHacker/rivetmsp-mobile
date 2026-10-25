@@ -14,6 +14,21 @@ import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 
+/**
+ * Last company name the server reported, kept where background code (push notifications, the
+ * home-screen widget) can read it without the Compose branding state.
+ */
+object CompanyNameStore {
+    private const val PREFS = "company_branding"
+    private const val KEY = "name"
+    fun remember(context: android.content.Context, name: String) {
+        context.getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE).edit().putString(KEY, name).apply()
+    }
+    /** The connected company's name, or null before a server has answered. */
+    fun last(context: android.content.Context): String? =
+        context.getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE).getString(KEY, null)?.takeIf { it.isNotBlank() }
+}
+
 /** Only same-origin paths are allowed; branding requests must never send credentials. */
 internal fun companyLogoUrl(server: String, path: String?): String? {
     if (path.isNullOrBlank()) return null
@@ -39,6 +54,7 @@ private fun decodeLogo(bytes: ByteArray): Bitmap? {
 /** Loads cached public branding, then refreshes without changing API auth or server identity. */
 internal class CompanyBrandingRepository(private val context: android.content.Context) {
     suspend fun load(server: String, certificate: String?, emit: (CompanyBranding) -> Unit) {
+        val fallbackName = server.toHttpUrlOrNull()?.host ?: "Company"
         val key = MessageDigest.getInstance("SHA-256").digest(server.toByteArray())
             .joinToString("") { "%02x".format(it) }
         val folder = File(context.cacheDir, "company_branding").apply { mkdirs() }
@@ -47,9 +63,9 @@ internal class CompanyBrandingRepository(private val context: android.content.Co
         val cached = withContext(Dispatchers.IO) {
             runCatching {
                 val data = JSONObject(metadata.readText())
-                CompanyBranding(data.optString("name", "RivetMSP"),
-                    data.optString("logo_path").isNotBlank(),
-                    if (image.exists()) decodeLogo(image.readBytes()) else null)
+                CompanyBranding(data.optString("name").ifBlank { fallbackName },
+                    fromServer = true,
+                    bitmap = if (image.exists()) decodeLogo(image.readBytes()) else null)
             }.getOrNull()
         }
         cached?.let { emit(it) }
@@ -78,7 +94,7 @@ internal class CompanyBrandingRepository(private val context: android.content.Co
                     }
                 }
                 val data = JSONObject(String(download("${server.trimEnd('/')}/api/v1/branding", 16_384)))
-                val name = data.optString("name").ifBlank { "RivetMSP" }
+                val name = data.optString("name").ifBlank { fallbackName }
                 val path = if (data.isNull("logo_path")) "" else data.optString("logo_path")
                 val url = companyLogoUrl(server, path)
                 val bytes = url?.let { runCatching { download(it, 5 * 1024 * 1024) }.getOrNull() }
@@ -88,12 +104,13 @@ internal class CompanyBrandingRepository(private val context: android.content.Co
                 if (bitmap != null) image.writeBytes(checkNotNull(bytes))
                 else if (path.isBlank() || previousPath != path) image.delete()
                 metadata.writeText(JSONObject().put("name", name).put("logo_path", path).toString())
-                CompanyBranding(name, path.isNotBlank(), effectiveBitmap)
+                CompanyBranding(name, fromServer = true, bitmap = effectiveBitmap)
             }.getOrNull()
         }
-        emit(refreshed ?: cached ?: CompanyBranding(
-            name = server.toHttpUrlOrNull()?.host ?: "Company",
-            logoConfigured = true,
-        ))
+        // Whatever the server (or its cache) says wins; if neither answered, use the host name.
+        // Never fall back to product artwork once a server is connected.
+        val result = refreshed ?: cached ?: CompanyBranding(name = fallbackName, fromServer = true)
+        CompanyNameStore.remember(context, result.name)
+        emit(result)
     }
 }

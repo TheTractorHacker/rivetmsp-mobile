@@ -228,9 +228,13 @@ fun MainScreen(
                     },
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            BrandMark(size = 28.dp)
-                            Spacer(Modifier.width(10.dp))
-                            Text(com.foleyit.itflow.ui.branding.LocalCompanyBranding.current.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                            val brand = com.foleyit.itflow.ui.branding.LocalCompanyBranding.current
+                            // A server without an uploaded logo gets its name only (no duplicate text mark).
+                            if (brand.bitmap != null || !brand.fromServer) {
+                                BrandMark(size = 28.dp)
+                                Spacer(Modifier.width(10.dp))
+                            }
+                            Text(brand.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                         }
                     },
                     actions = {

@@ -22,7 +22,8 @@ import com.foleyit.itflow.data.local.AppPreferences
 /** Brand data is public, scoped to the selected server, and never contains an auth token. */
 data class CompanyBranding(
     val name: String = "RivetMSP",
-    val logoConfigured: Boolean = false,
+    /** True once the name came from the connected server; product artwork is then never shown. */
+    val fromServer: Boolean = false,
     val bitmap: Bitmap? = null,
     val loading: Boolean = false,
 )
@@ -61,9 +62,11 @@ fun CompanyLogo(modifier: Modifier = Modifier) {
         Box(modifier) // Avoid flashing product branding while cached company identity loads.
     } else if (brand.bitmap != null) {
         Image(brand.bitmap.asImageBitmap(), brand.name, modifier, contentScale = ContentScale.Fit)
-    } else if (brand.logoConfigured) {
+    } else if (brand.fromServer) {
+        // The server has no (or an unreadable) logo: show the company's own name, not ours.
         Box(modifier, contentAlignment = androidx.compose.ui.Alignment.Center) {
-            Text(brand.name, style = MaterialTheme.typography.labelMedium, maxLines = 2)
+            Text(brand.name, style = MaterialTheme.typography.titleMedium, maxLines = 2,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
     } else {
         Image(painterResource(R.drawable.rivetmsp_logo), "RivetMSP",
