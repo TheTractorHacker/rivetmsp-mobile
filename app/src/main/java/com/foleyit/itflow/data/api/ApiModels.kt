@@ -1,6 +1,7 @@
 package com.foleyit.itflow.data.api
 
 import com.foleyit.itflow.ui.util.PagedResponse
+import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
 
 // ── Auth ────────────────────────────────────────────────────────────────────
@@ -43,12 +44,12 @@ data class TicketsResponse(override val data: List<TicketSummary>, override val 
 data class TicketSummary(
     val id: Int,
     val number: Int,
-    val subject: String,
+    @JsonAdapter(HtmlEntityStringAdapter::class) val subject: String,
     val priority: String?,
     val status: String?,
     @SerializedName("status_color") val statusColor: String?,
-    val client: String?,
-    @SerializedName("assigned_to") val assignedTo: String?,
+    @JsonAdapter(HtmlEntityStringAdapter::class) val client: String?,
+    @JsonAdapter(HtmlEntityStringAdapter::class) @SerializedName("assigned_to") val assignedTo: String?,
     @SerializedName("created_at") val createdAt: String?,
     @SerializedName("due_at") val dueAt: String?,
     @SerializedName("resolved_at") val resolvedAt: String?
@@ -87,12 +88,12 @@ data class LogTimeRequest(val time_worked: String, val note: String)
 data class ClientsResponse(override val data: List<ClientSummary>, override val total: Int) : PagedResponse<ClientSummary>
 
 data class ClientSummary(
-    val id: Int, val name: String, val phone: String?,
+    val id: Int, @JsonAdapter(HtmlEntityStringAdapter::class) val name: String, val phone: String?,
     val city: String?, val state: String?, val website: String?
 )
 
 data class ClientDetail(
-    val id: Int, val name: String, val phone: String?, val address: String?,
+    val id: Int, @JsonAdapter(HtmlEntityStringAdapter::class) val name: String, val phone: String?, val address: String?,
     val city: String?, val state: String?, val zip: String?, val website: String?,
     val notes: String?,
     @SerializedName("open_tickets") val openTickets: Int,
@@ -100,22 +101,22 @@ data class ClientDetail(
 )
 
 data class Contact(
-    val id: Int, val name: String, val title: String?,
+    val id: Int, @JsonAdapter(HtmlEntityStringAdapter::class) val name: String, val title: String?,
     val email: String?, val phone: String?, val extension: String?,
-    val client: String?
+    @JsonAdapter(HtmlEntityStringAdapter::class) val client: String?
 )
 
 // ── Assets ───────────────────────────────────────────────────────────────────
 data class AssetsResponse(override val data: List<AssetSummary>, override val total: Int) : PagedResponse<AssetSummary>
 
 data class AssetSummary(
-    val id: Int, val name: String, val tag: String?, val type: String?,
-    val make: String?, val model: String?, val serial: String?,
-    val os: String?, val status: String?, val client: String?
+    val id: Int, @JsonAdapter(HtmlEntityStringAdapter::class) val name: String, val tag: String?, val type: String?,
+    @JsonAdapter(HtmlEntityStringAdapter::class) val make: String?, @JsonAdapter(HtmlEntityStringAdapter::class) val model: String?, val serial: String?,
+    val os: String?, val status: String?, @JsonAdapter(HtmlEntityStringAdapter::class) val client: String?
 )
 
 data class AssetDetail(
-    val id: Int, val name: String, val tag: String?, val type: String?,
+    val id: Int, @JsonAdapter(HtmlEntityStringAdapter::class) val name: String, val tag: String?, val type: String?,
     val make: String?, val model: String?, val serial: String?,
     val os: String?, val status: String?, val description: String?,
     @SerializedName("physical_location") val physicalLocation: String?,
