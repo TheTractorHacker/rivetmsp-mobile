@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.foleyit.itflow.data.api.ApiClient
 import com.foleyit.itflow.data.api.ClientsResponse
+import com.foleyit.itflow.data.api.Contact
 import com.foleyit.itflow.data.api.CreateTicketRequest
 import com.foleyit.itflow.data.api.TicketCategory
 import com.foleyit.itflow.ui.components.SectionLabel
@@ -42,6 +43,9 @@ fun CreateTicketScreen(navController: NavController) {
     var selectedClientName by rememberSaveable { mutableStateOf("") }
     var clients by remember { mutableStateOf<ClientsResponse?>(null) }
     var showClientPicker by rememberSaveable { mutableStateOf(false) }
+    var contacts by remember { mutableStateOf<List<Contact>>(emptyList()) }
+    var selectedContactId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var showContactPicker by rememberSaveable { mutableStateOf(false) }
     var categories by remember { mutableStateOf<List<TicketCategory>>(emptyList()) }
     var selectedCategoryId by rememberSaveable { mutableStateOf<Int?>(null) }
     var showCategoryPicker by rememberSaveable { mutableStateOf(false) }
@@ -56,6 +60,15 @@ fun CreateTicketScreen(navController: NavController) {
         categories = runCatching { ApiClient.service().getTicketCategories() }.getOrDefault(emptyList())
     }
 
+    // A contact belongs to one client: reload the list (and forget the old pick) whenever the client changes.
+    // The saved pick survives rotation because the id is only cleared if it is not in the new client's list.
+    LaunchedEffect(selectedClientId) {
+        val clientId = selectedClientId
+        if (clientId == null) { contacts = emptyList(); selectedContactId = null; return@LaunchedEffect }
+        contacts = runCatching { ApiClient.service().getContacts(clientId).data }.getOrDefault(emptyList())
+        if (contacts.none { it.id == selectedContactId }) selectedContactId = null
+    }
+
     fun submit() {
         if (subject.isBlank()) { error = SUBJECT_REQUIRED; return }
         saving = true; error = null
@@ -67,7 +80,8 @@ fun CreateTicketScreen(navController: NavController) {
                         details = details.trim(),
                         clientId = selectedClientId,
                         priority = priority,
-                        categoryId = selectedCategoryId
+                        categoryId = selectedCategoryId,
+                        contactId = selectedContactId.takeIf { selectedClientId != null }
                     )
                 )
                 // Open the new ticket in place of this form (Back then returns to where the
@@ -85,24 +99,89 @@ fun CreateTicketScreen(navController: NavController) {
     }
 
     if (showClientPicker) {
+        var query by remember { mutableStateOf("") }
+        var results by remember { mutableStateOf(clients?.data.orEmpty()) }
+        // Same as the web form's searchable client select: ask the server, so clients beyond the
+        // first page are reachable.
+        LaunchedEffect(query) {
+            if (query.isNotEmpty()) kotlinx.coroutines.delay(300)
+            results = runCatching { ApiClient.service().getClients(search = query.trim(), page = 1).data }
+                .getOrDefault(clients?.data.orEmpty())
+        }
         ModalBottomSheet(onDismissRequest = { showClientPicker = false }) {
             Column(Modifier.padding(16.dp).navigationBarsPadding()) {
                 Text("Select Client", style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(8.dp))
-                Surface(onClick = { selectedClientId = null; selectedClientName = ""; showClientPicker = false },
+                OutlinedTextField(
+                    value = query, onValueChange = { query = it },
+                    modifier = Modifier.fillMaxWidth(), singleLine = true,
+                    placeholder = { Text("Search clients…") },
+                    leadingIcon = { Icon(Icons.Outlined.Search, null) }
+                )
+                Spacer(Modifier.height(8.dp))
+                Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+                    Surface(onClick = { selectedClientId = null; selectedClientName = ""; showClientPicker = false },
+                        modifier = Modifier.fillMaxWidth()) {
+                        Text("— No Client —", Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.outline)
+                    }
+                    HorizontalDivider()
+                    results.forEach { c ->
+                        Surface(onClick = {
+                            selectedClientId = c.id; selectedClientName = c.name; showClientPicker = false
+                        }, modifier = Modifier.fillMaxWidth()) {
+                            Text(c.name, Modifier.padding(16.dp))
+                        }
+                        HorizontalDivider()
+                    }
+                    if (results.isEmpty()) Text("No matching clients", Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.outline)
+                }
+            }
+        }
+    }
+
+    if (showContactPicker) {
+        var query by remember { mutableStateOf("") }
+        val q = query.trim()
+        val shown = if (q.isEmpty()) contacts else contacts.filter {
+            it.name.contains(q, ignoreCase = true) || it.email?.contains(q, ignoreCase = true) == true ||
+                it.title?.contains(q, ignoreCase = true) == true
+        }
+        ModalBottomSheet(onDismissRequest = { showContactPicker = false }) {
+            Column(Modifier.padding(16.dp).navigationBarsPadding()) {
+                Text("Select Contact", style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = query, onValueChange = { query = it },
+                    modifier = Modifier.fillMaxWidth(), singleLine = true,
+                    placeholder = { Text("Search contacts…") },
+                    leadingIcon = { Icon(Icons.Outlined.Search, null) }
+                )
+                Spacer(Modifier.height(8.dp))
+                Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+                Surface(onClick = { selectedContactId = null; showContactPicker = false },
                     modifier = Modifier.fillMaxWidth()) {
-                    Text("— No Client —", Modifier.padding(16.dp),
+                    Text("Primary contact (automatic)", Modifier.padding(16.dp),
                         color = MaterialTheme.colorScheme.outline)
                 }
                 HorizontalDivider()
-                clients?.data?.forEach { c ->
-                    Surface(onClick = {
-                        selectedClientId = c.id; selectedClientName = c.name; showClientPicker = false
-                    }, modifier = Modifier.fillMaxWidth()) {
-                        Text(c.name, Modifier.padding(16.dp))
+                shown.forEach { c ->
+                    Surface(onClick = { selectedContactId = c.id; showContactPicker = false },
+                        modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text(c.name)
+                            val sub = listOfNotNull(c.title, c.email).filter { it.isNotBlank() }.joinToString(" · ")
+                            if (sub.isNotEmpty()) Text(sub, style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.outline)
+                        }
                     }
                     HorizontalDivider()
+                }
+                if (shown.isEmpty()) Text("No matching contacts", Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.outline)
                 }
             }
         }
@@ -262,6 +341,33 @@ fun CreateTicketScreen(navController: NavController) {
                                     modifier = Modifier.weight(1f)
                                 )
                                 Icon(Icons.Outlined.ChevronRight, null, tint = MaterialTheme.colorScheme.outline)
+                            }
+                        }
+                    }
+                    if (selectedClientId != null && contacts.isNotEmpty()) {
+                        val selectedContactName = contacts.firstOrNull { it.id == selectedContactId }?.name
+                        Column(
+                            Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            SectionLabel("Contact")
+                            Surface(
+                                onClick = { showContactPicker = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.medium,
+                                color = MaterialTheme.colorScheme.surfaceContainerHighest
+                            ) {
+                                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Outlined.Person, null, tint = MaterialTheme.colorScheme.outline)
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(
+                                        selectedContactName ?: "Primary contact (automatic)",
+                                        color = if (selectedContactName == null) MaterialTheme.colorScheme.outline
+                                                else MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Icon(Icons.Outlined.ChevronRight, null, tint = MaterialTheme.colorScheme.outline)
+                                }
                             }
                         }
                     }

@@ -29,6 +29,13 @@ interface ApiService {
     @POST("tickets")
     suspend fun createTicket(@Body req: CreateTicketRequest): Map<String, Int>
 
+    // Contacts of one client (ticket creation picks who the ticket is for)
+    @GET("contacts")
+    suspend fun getContacts(
+        @Query("client_id") clientId: Int,
+        @Query("limit") limit: Int = 100
+    ): ContactsResponse
+
     // Search
     @GET("search")
     suspend fun search(@Query("q") q: String): SearchResult
